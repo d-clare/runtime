@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<VersionPrefix>0.1.0</VersionPrefix>
+    <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
+    <FileVersion>$(VersionPrefix)</FileVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+	<Copyright>Copyright © 2025-Present The DClare Authors. All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/d-clare/runtime</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <DebugType>embedded</DebugType>
+    <UserSecretsId>19f82167-449f-478c-9d0e-4114a9e4aa69</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="a2a-net.Server.AspNetCore" Version="0.4.1" />
+	<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+	<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
+	<PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
+	<PackageReference Include="Neuroglia.Mediation.AspNetCore" Version="4.21.0" />
+	<PackageReference Include="Scalar.AspNetCore" Version="2.1.16" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DClare.Runtime.Application\DClare.Runtime.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="runtime.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
