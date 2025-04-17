@@ -1,0 +1,77 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		CODEOWNERS = CODEOWNERS
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		LICENSE = LICENSE
+		MAINTAINERS.md = MAINTAINERS.md
+		README.md = README.md
+		SECURITY.md = SECURITY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C8329A3A-26FF-488C-B79B-E2F4A5706CBB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D7D430E8-C6A3-4D51-99C7-032A99998DAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DClare.Runtime.Integration", "src\DClare.Runtime.Integration\DClare.Runtime.Integration.csproj", "{13368B9F-9713-4FF6-AA9E-ED6BAC0AA668}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{0593A126-3639-4381-B8EB-7A84E3396E3A}"
+	ProjectSection(SolutionItems) = preProject
+		.github\PULL_REQUEST_TEMPLATE.md = .github\PULL_REQUEST_TEMPLATE.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{59EE67FF-FF05-4366-AA6B-878B9AFF47DB}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\publish.yml = .github\workflows\publish.yml
+		.github\workflows\test.yml = .github\workflows\test.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ISSUE_TEMPLATE", "ISSUE_TEMPLATE", "{54945AAB-CE62-4B4D-A112-13CDDE812EDF}"
+	ProjectSection(SolutionItems) = preProject
+		.github\ISSUE_TEMPLATE\bug.yml = .github\ISSUE_TEMPLATE\bug.yml
+		.github\ISSUE_TEMPLATE\config.yml = .github\ISSUE_TEMPLATE\config.yml
+		.github\ISSUE_TEMPLATE\feature.yml = .github\ISSUE_TEMPLATE\feature.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DClare.Runtime.Application", "src\DClare.Runtime.Application\DClare.Runtime.Application.csproj", "{A124ED19-60A9-4094-802E-317EBF24B102}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DClare.Runtime.Api", "src\DClare.Runtime.Api\DClare.Runtime.Api.csproj", "{CC085913-A3DA-4A73-A72A-5FB839D81B74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13368B9F-9713-4FF6-AA9E-ED6BAC0AA668}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13368B9F-9713-4FF6-AA9E-ED6BAC0AA668}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13368B9F-9713-4FF6-AA9E-ED6BAC0AA668}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13368B9F-9713-4FF6-AA9E-ED6BAC0AA668}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A124ED19-60A9-4094-802E-317EBF24B102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A124ED19-60A9-4094-802E-317EBF24B102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A124ED19-60A9-4094-802E-317EBF24B102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A124ED19-60A9-4094-802E-317EBF24B102}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC085913-A3DA-4A73-A72A-5FB839D81B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC085913-A3DA-4A73-A72A-5FB839D81B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC085913-A3DA-4A73-A72A-5FB839D81B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC085913-A3DA-4A73-A72A-5FB839D81B74}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{13368B9F-9713-4FF6-AA9E-ED6BAC0AA668} = {C8329A3A-26FF-488C-B79B-E2F4A5706CBB}
+		{59EE67FF-FF05-4366-AA6B-878B9AFF47DB} = {0593A126-3639-4381-B8EB-7A84E3396E3A}
+		{54945AAB-CE62-4B4D-A112-13CDDE812EDF} = {0593A126-3639-4381-B8EB-7A84E3396E3A}
+		{A124ED19-60A9-4094-802E-317EBF24B102} = {C8329A3A-26FF-488C-B79B-E2F4A5706CBB}
+		{CC085913-A3DA-4A73-A72A-5FB839D81B74} = {C8329A3A-26FF-488C-B79B-E2F4A5706CBB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B647F0DA-0308-4B65-AAC4-3EB13D1CD714}
+	EndGlobalSection
+EndGlobal
