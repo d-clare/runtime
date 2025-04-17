@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/d-clare/runtime/test.yml?branch=main)](https://github.com/d-clare/runtime/actions)
 [![Release](https://img.shields.io/github/v/release/d-clare/runtime?include_prereleases)](https://github.com/d-clare/runtime/releases)
-[![NuGet](https://img.shields.io/nuget/v/DClare.Runtime.Api.svg)](https://nuget.org/packages/DClare.Runtime.Api)
+[![NuGet](https://img.shields.io/nuget/v/DClare.Runtime.Integration.svg)](https://nuget.org/packages/DClare.Runtime.Integration)
 [![License](https://img.shields.io/github/license/d-clare/runtime)](LICENSE)
 [<img src="http://img.shields.io/badge/Website-blue?style=flat&logo=google-chrome&logoColor=white">](https://d-clare.ai/) 
 [<img src="https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&logoColor=white">](https://www.linkedin.com/company/d-clare/)
