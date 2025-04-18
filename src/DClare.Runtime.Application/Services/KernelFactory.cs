@@ -122,9 +122,9 @@ public class KernelFactory(ILoggerFactory loggerFactory, IOAuth2TokenManager oau
                 kernelBuilder.AddOnnxRuntimeGenAIChatCompletion(reasoningCapability.Model, path, reasoningCapability.Provider);
                 break;
             case ReasoningModelProvider.OpenAI:
-                var organization = reasoningCapability.Api.Properties == null || !reasoningCapability.Api.Properties.TryGetValue("deployment", out value) ? null : value as string;
+                var organization = reasoningCapability.Api.Properties == null || !reasoningCapability.Api.Properties.TryGetValue("organization", out value) ? null : value as string;
                 if (string.IsNullOrWhiteSpace(apiKey)) throw new NullReferenceException("Failed to resolve the API Key to use");
-                if (reasoningCapability.Api.Endpoint == null) kernelBuilder.AddOpenAIChatCompletion(reasoningCapability.Model, apiKey, organization, reasoningCapability.Provider);
+                if (reasoningCapability.Api.Endpoint.Uri == null) kernelBuilder.AddOpenAIChatCompletion(reasoningCapability.Model, apiKey, organization, reasoningCapability.Provider);
                 else kernelBuilder.AddOpenAIChatCompletion(reasoningCapability.Model, reasoningCapability.Api.Endpoint.Uri, apiKey, organization, reasoningCapability.Provider);
                 break;
             default:
