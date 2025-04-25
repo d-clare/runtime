@@ -14,11 +14,11 @@
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Represents the default implementation of the <see cref="IAgenticProcessFactory"/> interface
+/// Represents the default implementation of the <see cref="IProcessFactory"/> interface
 /// </summary>
 /// <param name="serviceProvider">The current <see cref="IServiceProvider"/></param>
-public class AgenticProcessFactory(IServiceProvider serviceProvider)
-    : IAgenticProcessFactory
+public class ProcessFactory(IServiceProvider serviceProvider)
+    : IProcessFactory
 {
 
     /// <summary>
@@ -27,13 +27,13 @@ public class AgenticProcessFactory(IServiceProvider serviceProvider)
     protected IServiceProvider ServiceProvider { get; } = serviceProvider;
 
     /// <inheritdoc/>
-    public virtual Task<IAgenticProcess> CreateAsync(AgenticProcessDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default)
+    public virtual Task<IProcess> CreateAsync(ProcessDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        return Task.FromResult<IAgenticProcess>(definition.Type switch
+        return Task.FromResult<IProcess>(definition.Type switch
         {
-            AgenticProcessType.Collaboration => ActivatorUtilities.CreateInstance<CollaborationAgenticProcess>(ServiceProvider, definition.Collaboration!, components!),
-            AgenticProcessType.Convergence => ActivatorUtilities.CreateInstance<ConvergenceAgenticProcess>(ServiceProvider, definition.Convergence!, components!),
+            ProcessType.Collaboration => ActivatorUtilities.CreateInstance<CollaborationProcess>(ServiceProvider, definition.Collaboration!, components!),
+            ProcessType.Convergence => ActivatorUtilities.CreateInstance<ConvergenceProcess>(ServiceProvider, definition.Convergence!, components!),
             _ => throw new NotSupportedException($"The specified agentic process type '{definition.Type}' is not supported")
         });
     }

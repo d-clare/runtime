@@ -16,7 +16,7 @@ namespace DClare.Runtime.Application.Services;
 /// <summary>
 /// Defines the fundamentals of a high-level orchestration process involving one or more agents
 /// </summary>
-public interface IAgenticProcess
+public interface IProcess
 {
 
     /// <summary>

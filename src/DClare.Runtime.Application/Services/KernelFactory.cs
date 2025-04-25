@@ -86,7 +86,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IOAuth2TokenManager oau
     {
         ArgumentNullException.ThrowIfNull(kernelBuilder);
         ArgumentNullException.ThrowIfNull(reasoningCapability);
-        var apiKey = reasoningCapability.Api.Endpoint.Authentication?.Scheme switch
+        var apiKey = reasoningCapability.Api.Endpoint?.Authentication?.Scheme switch
         {
             AuthenticationScheme.ApiKey => reasoningCapability.Api.Endpoint.Authentication.ApiKey!.Key,
             AuthenticationScheme.Bearer => reasoningCapability.Api.Endpoint.Authentication.Bearer!.Token,
@@ -97,7 +97,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IOAuth2TokenManager oau
         {
             case ReasoningModelProvider.AzureOpenAI:
                 if (reasoningCapability.Api.Properties == null || !reasoningCapability.Api.Properties.TryGetValue("deployment", out var value) || value is not string deployment || string.IsNullOrWhiteSpace(deployment)) throw new NullReferenceException($"The 'deployment' API property must be set when using the '{ReasoningModelProvider.AzureOpenAI}' reasoning model provider");
-                if (reasoningCapability.Api.Endpoint == null) throw new NullReferenceException($"'{nameof(reasoningCapability)}.{nameof(reasoningCapability.Api)}.{nameof(reasoningCapability.Api.Endpoint)}' must be set when using the '{ReasoningModelProvider.AzureOpenAI}' reasoning model provider");
+                if (reasoningCapability.Api.Endpoint?.Uri == null) throw new NullReferenceException($"'{nameof(reasoningCapability)}.{nameof(reasoningCapability.Api)}.{nameof(reasoningCapability.Api.Endpoint)}' must be set when using the '{ReasoningModelProvider.AzureOpenAI}' reasoning model provider");
                 if (string.IsNullOrWhiteSpace(apiKey)) throw new NullReferenceException("Failed to resolve the API Key to use");
                 kernelBuilder.AddAzureOpenAIChatCompletion(deployment, reasoningCapability.Api.Endpoint.Uri.OriginalString, apiKey, reasoningCapability.Provider, reasoningCapability.Model);
                 break;
@@ -106,15 +106,15 @@ public class KernelFactory(ILoggerFactory loggerFactory, IOAuth2TokenManager oau
                 kernelBuilder.AddGoogleAIGeminiChatCompletion(reasoningCapability.Model, apiKey, serviceId: reasoningCapability.Provider);
                 break;
             case ReasoningModelProvider.HuggingFace:
-                if (reasoningCapability.Api.Endpoint == null) throw new NullReferenceException($"'{nameof(reasoningCapability)}.{nameof(reasoningCapability.Api)}.{nameof(reasoningCapability.Api.Endpoint)}' must be set when using the '{ReasoningModelProvider.HuggingFace}' reasoning model provider");
+                if (reasoningCapability.Api.Endpoint?.Uri == null) throw new NullReferenceException($"'{nameof(reasoningCapability)}.{nameof(reasoningCapability.Api)}.{nameof(reasoningCapability.Api.Endpoint)}' must be set when using the '{ReasoningModelProvider.HuggingFace}' reasoning model provider");
                 kernelBuilder.AddHuggingFaceChatCompletion(reasoningCapability.Api.Endpoint.Uri, apiKey, reasoningCapability.Provider);
                 break;
             case ReasoningModelProvider.MistralAI:
                 if (string.IsNullOrWhiteSpace(apiKey)) throw new NullReferenceException("Failed to resolve the API Key to use");
-                kernelBuilder.AddMistralChatCompletion(reasoningCapability.Model, apiKey, reasoningCapability.Api.Endpoint.Uri, reasoningCapability.Provider);
+                kernelBuilder.AddMistralChatCompletion(reasoningCapability.Model, apiKey, reasoningCapability.Api.Endpoint?.Uri, reasoningCapability.Provider);
                 break;
             case ReasoningModelProvider.Ollama:
-                if (reasoningCapability.Api.Endpoint == null) throw new NullReferenceException($"'{nameof(reasoningCapability)}.{nameof(reasoningCapability.Api)}.{nameof(reasoningCapability.Api.Endpoint)}' must be set when using the '{ReasoningModelProvider.Ollama}' reasoning model provider");
+                if (reasoningCapability.Api.Endpoint?.Uri == null) throw new NullReferenceException($"'{nameof(reasoningCapability)}.{nameof(reasoningCapability.Api)}.{nameof(reasoningCapability.Api.Endpoint)}' must be set when using the '{ReasoningModelProvider.Ollama}' reasoning model provider");
                 kernelBuilder.AddOllamaChatCompletion(reasoningCapability.Model, reasoningCapability.Api.Endpoint.Uri, reasoningCapability.Provider);
                 break;
             case ReasoningModelProvider.Onnx:
@@ -124,7 +124,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IOAuth2TokenManager oau
             case ReasoningModelProvider.OpenAI:
                 var organization = reasoningCapability.Api.Properties == null || !reasoningCapability.Api.Properties.TryGetValue("organization", out value) ? null : value as string;
                 if (string.IsNullOrWhiteSpace(apiKey)) throw new NullReferenceException("Failed to resolve the API Key to use");
-                if (reasoningCapability.Api.Endpoint.Uri == null) kernelBuilder.AddOpenAIChatCompletion(reasoningCapability.Model, apiKey, organization, reasoningCapability.Provider);
+                if (reasoningCapability.Api.Endpoint?.Uri == null) kernelBuilder.AddOpenAIChatCompletion(reasoningCapability.Model, apiKey, organization, reasoningCapability.Provider);
                 else kernelBuilder.AddOpenAIChatCompletion(reasoningCapability.Model, reasoningCapability.Api.Endpoint.Uri, apiKey, organization, reasoningCapability.Provider);
                 break;
             default:

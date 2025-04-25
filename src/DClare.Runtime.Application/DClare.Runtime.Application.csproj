@@ -23,13 +23,15 @@
 	<PackageReference Include="a2a-net.Client.Http" Version="0.4.1" />
 	<PackageReference Include="a2a-net.Server" Version="0.4.1" />
 	<PackageReference Include="a2a-net.Server.Infrastructure.DistributedCache" Version="0.4.1" />
-	<PackageReference Include="DClare.Sdk" Version="0.1.1" />
+	<PackageReference Include="DClare.Sdk" Version="0.2.0" />
 	<PackageReference Include="Duende.IdentityModel" Version="7.0.0" />
 	<PackageReference Include="mcpdotnet" Version="1.2.0.1" />
-	<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.8.0" />
-	<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.8.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.46.0" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.46.0" />
+	<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.4" />
+	<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
+	<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.9.0" />
+	<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.9.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.47.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.47.0" />
 	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.46.0-alpha" />
 	<PackageReference Include="Microsoft.SemanticKernel.Connectors.HuggingFace" Version="1.46.0-preview" />
 	<PackageReference Include="Microsoft.SemanticKernel.Connectors.MistralAI" Version="1.46.0-alpha" />
