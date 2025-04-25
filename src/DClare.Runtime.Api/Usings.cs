@@ -13,6 +13,7 @@
 
 global using A2A.Server.AspNetCore;
 global using DClare.Runtime.Api.Services;
+global using DClare.Runtime.Application;
 global using DClare.Runtime.Application.Configuration;
 global using DClare.Runtime.Application.Services;
 global using DClare.Runtime.Integration.Models;

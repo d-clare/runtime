@@ -14,18 +14,18 @@
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Defines the fundamentals of a service used to create <see cref="IAgenticProcess"/>es
+/// Defines the fundamentals of a service used to create <see cref="IProcess"/>es
 /// </summary>
-public interface IAgenticProcessFactory
+public interface IProcessFactory
 {
 
     /// <summary>
-    /// Creates a new <see cref="IAgenticProcess"/>
+    /// Creates a new <see cref="IProcess"/>
     /// </summary>
-    /// <param name="definition">The definition of the <see cref="IAgenticProcess"/> to create</param>
-    /// <param name="components">A collection, if any, containing the reusable components potentially referenced by the <see cref="IAgenticProcess"/> to create</param>
+    /// <param name="definition">The definition of the <see cref="IProcess"/> to create</param>
+    /// <param name="components">A collection, if any, containing the reusable components potentially referenced by the <see cref="IProcess"/> to create</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>A new <see cref="IAgenticProcess"/></returns>
-    Task<IAgenticProcess> CreateAsync(AgenticProcessDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default);
+    /// <returns>A new <see cref="IProcess"/></returns>
+    Task<IProcess> CreateAsync(ProcessDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default);
 
 }

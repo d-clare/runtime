@@ -11,18 +11,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Application.Configuration;
+namespace DClare.Runtime.Application;
 
 /// <summary>
-/// Represents the options used to configure the DClare runtime
+/// Enumerates all supported cache providers
 /// </summary>
-public record ApplicationOptions
-    : Manifest
+public static class CacheProvider
 {
 
     /// <summary>
-    /// Gets/sets options used to configure the application's cache
+    /// Indicates a memory cache
     /// </summary>
-    public virtual CacheOptions Cache { get; set; } = new();
+    public const string Memory = "memory";
+    /// <summary>
+    /// Indicates a Redis cache
+    /// </summary>
+    public const string Redis = "redis";
+
+    /// <summary>
+    /// Gets a new <see cref="IEnumerable{T}"/> containing all supported values
+    /// </summary>
+    /// <returns>A <see cref="IEnumerable{T}"/> containing all supported values</returns>
+    public static IEnumerable<string> AsEnumerable()
+    {
+        yield return Memory;
+        yield return Redis;
+    }
 
 }

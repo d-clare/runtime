@@ -16,22 +16,22 @@ using DClare.Sdk.Models.Processes;
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Represents a collaboration implementation of the <see cref="IAgenticProcess"/> interface
+/// Represents a collaboration implementation of the <see cref="IProcess"/> interface
 /// </summary>
-/// <param name="definition">The <see cref="IAgenticProcess"/>'s definition</param>
-/// <param name="components">A a collection, if any, containing the reusable components available to the <see cref="IAgenticProcess"/></param>
+/// <param name="definition">The <see cref="IProcess"/>'s definition</param>
+/// <param name="components">A a collection, if any, containing the reusable components available to the <see cref="IProcess"/></param>
 /// <param name="logger">The service used to perform logging</param>
-public class CollaborationAgenticProcess(CollaborationAgenticProcessDefinition definition, ComponentCollectionDefinition? components, ILogger<CollaborationAgenticProcess> logger)
-    : IAgenticProcess
+public class CollaborationProcess(CollaborationAgenticProcessDefinition definition, ComponentCollectionDefinition? components, ILogger<CollaborationProcess> logger)
+    : IProcess
 {
 
     /// <summary>
-    /// Gets the <see cref="IAgenticProcess"/>'s definition
+    /// Gets the <see cref="IProcess"/>'s definition
     /// </summary>
     protected CollaborationAgenticProcessDefinition Definition { get; } = definition;
 
     /// <summary>
-    /// Gets a collection, if any, containing the reusable components available to the <see cref="IAgenticProcess"/>
+    /// Gets a collection, if any, containing the reusable components available to the <see cref="IProcess"/>
     /// </summary>
     protected ComponentCollectionDefinition? Components { get; } = components;
 
