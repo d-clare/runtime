@@ -11,23 +11,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using McpDotNet.Client;
-using McpDotNet.Configuration;
 using Microsoft.SemanticKernel.Plugins.OpenApi;
+using ModelContextProtocol.SemanticKernel.Extensions;
+using ModelContextProtocol.SemanticKernel.Options;
 
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
 /// Represents the default implementation of the <see cref="IKernelPluginManager"/> interface
 /// </summary>
-public class KernelPluginManager
+/// <param name="loggerFactory">The service used to create <see cref="ILogger"/>s</param>
+public class KernelPluginManager(ILoggerFactory loggerFactory)
     : IKernelPluginManager
 {
 
     /// <summary>
+    /// Gets the service used to create <see cref="ILogger"/>s
+    /// </summary>
+    protected ILoggerFactory LoggerFactory { get; } = loggerFactory;
+
+    /// <summary>
     /// Gets a list containing all loaded <see cref="KernelPlugin"/>s
     /// </summary>
-    protected List<KernelPlugin> Plugins { get; } = [];
+    protected KernelPluginCollection Plugins { get; } = [];
 
     /// <inheritdoc/>
     public virtual async Task<KernelPlugin> GetOrLoadAsync(string name, ToolsetDefinition definition, CancellationToken cancellationToken = default)
@@ -53,33 +59,12 @@ public class KernelPluginManager
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (definition.Mcp == null) throw new NullReferenceException($"The '{nameof(definition.Mcp)}' property must be configured for a toolset of type '{ToolsetType.Mcp}'");
-        var serverConfig = new McpServerConfig()
+        return definition.Mcp.Transport.Type switch
         {
-            Id = name.ToCamelCase(),
-            Name = name,
-            TransportType = definition.Mcp.Transport.Type,
-            TransportOptions = definition.Mcp.Transport.Options == null ? null : new(definition.Mcp.Transport.Options),
-            Location = definition.Mcp.Transport.Type switch
-            {
-                McpTransportType.Http => definition.Mcp.Transport.Http!.Endpoint.Uri.OriginalString,
-                McpTransportType.Stdio => definition.Mcp.Transport.Stdio!.Command,
-                _ => throw new NotSupportedException()
-            },
-            Arguments = definition.Mcp.Transport.Stdio?.Arguments?.ToArray()
-        };
-        var clientOptions = new McpClientOptions()
-        {
-            ClientInfo = new()
-            {
-                Name = definition.Mcp.Client.Implementation.Name,
-                Version = definition.Mcp.Client.Implementation.Version
-            },
-            ProtocolVersion = definition.Mcp.Client.ProtocolVersion,
-            InitializationTimeout = definition.Mcp.Client.Timeout?.ToTimeSpan() ?? TimeSpan.FromSeconds(60)
-        };
-        await using var mcpClient = await McpClientFactory.CreateAsync(serverConfig, clientOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-        var tools = await mcpClient.GetAIFunctionsAsync(cancellationToken);
-        return Plugins.AddFromFunctions(name, tools.Select(t => t.AsKernelFunction()));
+            McpTransportType.Http => await Plugins.AddMcpFunctionsFromSseServerAsync(definition.Mcp.Client.Implementation.Name, definition.Mcp.Transport.Http!.Endpoint.Uri, LoggerFactory, cancellationToken).ConfigureAwait(false),
+            McpTransportType.Stdio => await Plugins.AddMcpFunctionsFromStdioServerAsync(definition.Mcp.Client.Implementation.Name, definition.Mcp.Transport.Stdio!.Command, definition.Mcp.Transport.Stdio.Arguments, null, LoggerFactory, cancellationToken).ConfigureAwait(false),
+            _ => throw new NotSupportedException($"The specified MCP transport type '{definition.Mcp.Transport.Type}' is not supported")
+        };;
     }
 
     /// <summary>
