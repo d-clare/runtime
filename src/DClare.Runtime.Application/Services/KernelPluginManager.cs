@@ -13,7 +13,6 @@
 
 using Microsoft.SemanticKernel.Plugins.OpenApi;
 using ModelContextProtocol.SemanticKernel.Extensions;
-using ModelContextProtocol.SemanticKernel.Options;
 
 namespace DClare.Runtime.Application.Services;
 
@@ -40,7 +39,7 @@ public class KernelPluginManager(ILoggerFactory loggerFactory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(definition);
-        return definition.Type switch
+        return Plugins.FirstOrDefault(p => p.Name == name) ?? definition.Type switch
         {
             ToolsetType.Mcp => await LoadMcpPluginAsync(name, definition, cancellationToken).ConfigureAwait(false),
             ToolsetType.OpenApi => await LoadOpenApiPluginAsync(name, definition, cancellationToken).ConfigureAwait(false),
