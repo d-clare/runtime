@@ -74,7 +74,7 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
         var chatHistory = string.IsNullOrWhiteSpace(sessionId) ? null : await ChatHistoryManager.GetChatHistoryAsync(Name, sessionId, cancellationToken).ConfigureAwait(false);
         chatHistory ??= string.IsNullOrWhiteSpace(Definition.Instructions) ? new() : new(Definition.Instructions);
         var responseId = Guid.NewGuid().ToString("N");
-        var stream = StreamResponseAsync(message, chatHistory, cancellationToken);
+        var stream = StreamResponseAsync(message, chatHistory, sessionId, cancellationToken);
         return new ChatResponseStream(responseId, stream);
     }
 
@@ -83,9 +83,10 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     /// </summary>
     /// <param name="userMessage">The user's input message to send to the agent</param>
     /// <param name="chatHistory">The chat history to include in the prompt and update with the final assistant message</param>
+    /// <param name="sessionId">The id of the session, if any, in the context of which to invoke the agent</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>An asynchronous stream of <see cref="Integration.Models.StreamingChatMessageContent"/> values representing the streamed response</returns>
-    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, ChatHistory chatHistory, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, ChatHistory chatHistory, string? sessionId = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userMessage);
         ArgumentNullException.ThrowIfNull(chatHistory);
@@ -102,6 +103,7 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
         }
         var answer = answerBuilder.ToString();
         chatHistory.AddAssistantMessage(answer);
+        if (!string.IsNullOrWhiteSpace(sessionId)) await ChatHistoryManager.SetChatHistoryAsync(Name, sessionId, chatHistory, cancellationToken).ConfigureAwait(false);
     }
 
     protected virtual Task AddMemoryContextAsync(string userMessage, ChatHistory chatHistory, CancellationToken cancellationToken = default)

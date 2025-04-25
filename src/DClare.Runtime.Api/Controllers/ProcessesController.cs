@@ -32,7 +32,7 @@ public class ProcessesController(IMediator mediator)
     /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
     [HttpPost("invoke")]
     [ProducesResponseType(typeof(ChatResponse), (int)HttpStatusCode.OK)]
-    public virtual async Task<IActionResult> InvokeAgentAsync([FromBody] InvokeProcessCommand command, CancellationToken cancellationToken)
+    public virtual async Task<IActionResult> InvokeProcessAsync([FromBody] InvokeProcessCommand command, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);

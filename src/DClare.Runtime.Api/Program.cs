@@ -11,20 +11,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using DClare.Runtime.Application;
-
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddYamlFile("runtime.yaml", true);
-builder.Services.AddOptions<ApplicationOptions>().Bind(builder.Configuration).ValidateDataAnnotations().ValidateOnStart();
+builder.Configuration.AddYamlFile("manifest.yaml", true);
+builder.Services.AddOptions<ApplicationOptions>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddRouting(options =>
 {
     options.LowercaseUrls = true;
     options.LowercaseQueryStrings = true;
 });
-builder.Services.AddControllers(options =>
+builder.Services
+    .AddControllers(options =>
 {
     options.Filters.Add<ProblemDetailsExceptionFilter>();
-}).AddJsonOptions(options =>
+})
+    .AddJsonOptions(options =>
 {
     JsonSerializer.DefaultOptionsConfiguration(options.JsonSerializerOptions);
 });
@@ -36,13 +39,13 @@ builder.Services.AddMediator(options =>
 });
 builder.Services.AddHttpClient();
 builder.Services.AddA2AAgents(builder.Configuration);
-builder.Services.AddDistributedMemoryCache(); //todo: replace
+builder.Services.AddCache(builder.Configuration);
 builder.Services.AddSingleton<IOAuth2TokenManager, OAuth2TokenManager>();
 builder.Services.AddSingleton<IChatHistoryManager, ChatHistoryManager>();
 builder.Services.AddSingleton<IKernelPluginManager, KernelPluginManager>();
 builder.Services.AddTransient<IKernelFactory, KernelFactory>();
 builder.Services.AddTransient<IAgentFactory, AgentFactory>();
-builder.Services.AddTransient<IAgenticProcessFactory, AgenticProcessFactory>();
+builder.Services.AddTransient<IProcessFactory, ProcessFactory>();
 builder.Services.AddTransient<IKernelFunctionStrategyFactory, KernelFunctionStrategyFactory>();
 
 var app = builder.Build();

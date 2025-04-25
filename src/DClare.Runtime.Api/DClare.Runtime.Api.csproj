@@ -18,11 +18,10 @@
   <ItemGroup>
     <PackageReference Include="a2a-net.Server.AspNetCore" Version="0.4.1" />
 	<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
-	<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
 	<PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
 	<PackageReference Include="Neuroglia.Mediation.AspNetCore" Version="4.21.0" />
-	<PackageReference Include="Scalar.AspNetCore" Version="2.1.16" />
+	<PackageReference Include="Scalar.AspNetCore" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="runtime.yaml">
+    <None Update="manifest.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

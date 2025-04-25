@@ -23,6 +23,9 @@ namespace DClare.Runtime.Application;
 public static class IServiceCollectionExtensions
 {
 
+    const string ConnectionStringConfigurationPropertyName = "connectionString";
+    const string InstanceNameConfigurationPropertyName = "instanceName";
+
     /// <summary>
     /// Adds and configures the <see cref="AgentCard"/> used to document the application's hosted agents
     /// </summary>
@@ -33,9 +36,9 @@ public static class IServiceCollectionExtensions
     {
         var options = new ApplicationOptions();
         configuration.Bind(options);
-        if (options.Components?.Agents != null)
+        if (options.Interfaces?.Agents != null)
         {
-            foreach (var agent in options.Components.Agents.Where(a => a.Value.Hosted != null))
+            foreach (var agent in options.Interfaces.Agents.Where(a => a.Value.Hosted != null && a.Value.Endpoints.A2A))
             {
                 services.AddA2AWellKnownAgent((provider, builder) =>
                 {
@@ -59,10 +62,39 @@ public static class IServiceCollectionExtensions
                 services.AddA2AProtocolServer(agent.Key, builder =>
                 {
                     builder
-                        .UseAgentRuntime(provider => ActivatorUtilities.CreateInstance<A2AAgentRuntime>(provider, agent.Key, agent.Value, options.Components))
+                        .UseAgentRuntime(provider => ActivatorUtilities.CreateInstance<A2AAgentRuntime>(provider, agent.Key, agent.Value, options.Components!))
                         .UseDistributedCacheTaskRepository();
                 });
             }
+        }
+        return services;
+    }
+
+    /// <summary>
+    /// Adds and configures the application's cache
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to configure</param>
+    /// <param name="configuration">The current <see cref="IConfiguration"/></param>
+    /// <returns>The configured <see cref="IServiceCollection"/></returns>
+    public static IServiceCollection AddCache(this IServiceCollection services, IConfiguration configuration)
+    {
+        var options = new ApplicationOptions();
+        configuration.Bind(options);
+        switch (options.Cache.Provider)
+        {
+            case CacheProvider.Memory:
+                services.AddDistributedMemoryCache();
+                break;
+            case CacheProvider.Redis:
+                services.AddStackExchangeRedisCache(redis =>
+                {
+                    if (options.Cache.Configuration == null) throw new NullReferenceException($"Configuration must be set when using the specified provider '{options.Cache.Provider}'");
+                    var configuration = new Dictionary<string, object>(options.Cache.Configuration, StringComparer.OrdinalIgnoreCase);
+                    if (!configuration.TryGetValue(ConnectionStringConfigurationPropertyName, out var value) || value is not string connectionString || string.IsNullOrWhiteSpace(connectionString)) throw new NullReferenceException($"The '{ConnectionStringConfigurationPropertyName}' configuration property must be set when using the specified provider '{options.Cache.Provider}'");
+                    redis.Configuration = connectionString;
+                    if (configuration.TryGetValue(InstanceNameConfigurationPropertyName, out value) && value is string instanceName) redis.InstanceName = instanceName;
+                });
+                break;
         }
         return services;
     }

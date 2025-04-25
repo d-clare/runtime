@@ -12,29 +12,30 @@
 // limitations under the License.
 
 using DClare.Sdk.Models.Processes;
+using Json.Schema;
 
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Represents a convergence implementation of the <see cref="IAgenticProcess"/> interface
+/// Represents a convergence implementation of the <see cref="IProcess"/> interface
 /// </summary>
-/// <param name="definition">The <see cref="IAgenticProcess"/>'s definition</param>
-/// <param name="components">A a collection, if any, containing the reusable components available to the <see cref="IAgenticProcess"/></param>
+/// <param name="definition">The <see cref="IProcess"/>'s definition</param>
+/// <param name="components">A a collection, if any, containing the reusable components available to the <see cref="IProcess"/></param>
 /// <param name="logger">The service used to perform logging</param>
 /// <param name="agentFactory">The service used to create <see cref="IAgent"/>s</param>
 /// <param name="kernelFunctionStrategyFactory">The service used to create <see cref="IKernelFunctionStrategy"/> instances</param>
 /// <param name="jsonSerializer">The service used to serialize/deserialize data to/from JSON</param>
-public class ConvergenceAgenticProcess(ConvergenceAgenticProcessDefinition definition, ComponentCollectionDefinition? components, ILogger<ConvergenceAgenticProcess> logger, IAgentFactory agentFactory, IKernelFunctionStrategyFactory kernelFunctionStrategyFactory, IJsonSerializer jsonSerializer)
-    : IAgenticProcess
+public class ConvergenceProcess(ConvergenceAgenticProcessDefinition definition, ComponentCollectionDefinition? components, ILogger<ConvergenceProcess> logger, IAgentFactory agentFactory, IKernelFunctionStrategyFactory kernelFunctionStrategyFactory, IJsonSerializer jsonSerializer)
+    : IProcess
 {
 
     /// <summary>
-    /// Gets the <see cref="IAgenticProcess"/>'s definition
+    /// Gets the <see cref="IProcess"/>'s definition
     /// </summary>
     protected ConvergenceAgenticProcessDefinition Definition { get; } = definition;
 
     /// <summary>
-    /// Gets a collection, if any, containing the reusable components available to the <see cref="IAgenticProcess"/>
+    /// Gets a collection, if any, containing the reusable components available to the <see cref="IProcess"/>
     /// </summary>
     protected ComponentCollectionDefinition? Components { get; } = components;
 
@@ -73,7 +74,7 @@ public class ConvergenceAgenticProcess(ConvergenceAgenticProcessDefinition defin
         var agents = await Definition.Agents.ToAsyncEnumerable().SelectAwait(async a => await AgentFactory.CreateAsync(a.Key, a.Value, Components, cancellationToken).ConfigureAwait(false)).ToListAsync(cancellationToken).ConfigureAwait(false);
         var decompositionStrategy = Definition.Strategy.Decomposition == null ? null : await KernelFunctionStrategyFactory.CreateAsync(Definition.Strategy.Decomposition, Components, cancellationToken).ConfigureAwait(false);
         IDictionary<string, object?> strategyArguments;
-        IDictionary<string, string> agentSubprompts;
+        IDictionary<string, string> agentSubPrompts;
         if (Definition.Strategy.Decomposition != null && decompositionStrategy != null)
         {
             var agentsVariable = string.Join(Environment.NewLine, agents.Select(a => $"- {a.Name}: {a.Description ?? "General-purpose agent available for generic tasks"}"));
@@ -86,7 +87,7 @@ public class ConvergenceAgenticProcess(ConvergenceAgenticProcessDefinition defin
             var json = string.Concat(messages.Select(m => m.Content).Where(c => !string.IsNullOrWhiteSpace(c)));
             try
             {
-                agentSubprompts = JsonSerializer.Deserialize<IDictionary<string, string>>(json)!;
+                agentSubPrompts = JsonSerializer.Deserialize<IDictionary<string, string>>(json)!;
             }
             catch (Exception)
             {
@@ -95,23 +96,56 @@ public class ConvergenceAgenticProcess(ConvergenceAgenticProcessDefinition defin
         }
         else
         {
-            agentSubprompts = agents.ToDictionary(a => a.Name, a => prompt);
+            agentSubPrompts = agents.ToDictionary(a => a.Name, a => prompt);
         }
-        var agentSubpromptTasks = new List<Task<AgentResponse>>(agentSubprompts.Count);
-        foreach (var agentSubprompt in agentSubprompts)
+        var agentSubPromptTasks = new List<Task<AgentResponse>>(agentSubPrompts.Count);
+        foreach (var agentSubPrompt in agentSubPrompts)
         {
-            var agent = agents.FirstOrDefault(a => a.Name == agentSubprompt.Key);
+            var agent = agents.FirstOrDefault(a => a.Name == agentSubPrompt.Key);
             if (agent == null) continue;
-            agentSubpromptTasks.Add(InvokeAgentAsync(agent, agentSubprompt.Value, sessionId, cancellationToken));
+            agentSubPromptTasks.Add(InvokeAgentAsync(agent, agentSubPrompt.Value, sessionId, cancellationToken));
         }
-        var agentSubpromptResponses = await Task.WhenAll(agentSubpromptTasks).ConfigureAwait(false);
-        var synthesisStrategy = await KernelFunctionStrategyFactory.CreateAsync(Definition.Strategy.Synthesis, Components, cancellationToken).ConfigureAwait(false);
-        var agentSubpromptsVariable = string.Join(Environment.NewLine, agentSubpromptResponses.Where(r => r.IsSuccessStatusCode).Select(r => $"- {r.AgentName}: {(r.Response == null ? null : string.Concat(r.Response.Messages.Select(m => m.Content).Where(c => !string.IsNullOrWhiteSpace(c))))}"));
-        strategyArguments = new Dictionary<string, object?>()
+        var agentSubPromptResponses = await Task.WhenAll(agentSubPromptTasks).ConfigureAwait(false);
+        IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> stream;
+        if (Definition.Strategy.Synthesis == null)
         {
-            { Definition.Strategy.Synthesis.ResponsesVariableName, agentSubpromptsVariable }
-        };
-        return new(Guid.NewGuid().ToString("N"), synthesisStrategy.InvokeStreamingAsync(strategyArguments, cancellationToken));
+            stream = agentSubPromptResponses
+                .SelectMany(response =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var messages = new List<Integration.Models.StreamingChatMessageContent>();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        messages.Add(new Integration.Models.StreamingChatMessageContent($"⚠️ Agent '{response.AgentName}' failed: {response.Exception ?? "Unknown error"}",AuthorRole.System.Label, new Dictionary<string, object?>
+                        {
+                            ["agent"] = response.AgentName,
+                            ["statusCode"] = response.StatusCode
+                        }));
+                        return messages;
+                    }
+                    if (response.Response == null || response.Response.Messages == null || !response.Response.Messages.Any()) return messages;
+                    messages.Add(new Integration.Models.StreamingChatMessageContent($"🤖 Response from agent '{response.AgentName}':",AuthorRole.System.Label, new Dictionary<string, object?> { ["agent"] = response.AgentName }));
+                    messages.AddRange(response.Response.Messages.Select(message =>
+                    {
+                        var metadata = message.Metadata ?? new Dictionary<string, object?>();
+                        metadata["agent"] = response.AgentName;
+                        return new Integration.Models.StreamingChatMessageContent(message.Content, message.Role, metadata);
+                    }));
+                    return messages;
+                })
+                .ToAsyncEnumerable();
+        }
+        else
+        {
+            var synthesisStrategy = await KernelFunctionStrategyFactory.CreateAsync(Definition.Strategy.Synthesis, Components, cancellationToken).ConfigureAwait(false);
+            var agentSubPromptsVariable = string.Join(Environment.NewLine, agentSubPromptResponses.Where(r => r.IsSuccessStatusCode).Select(r => $"- {r.AgentName}: {(r.Response == null ? null : string.Concat(r.Response.Messages.Select(m => m.Content).Where(c => !string.IsNullOrWhiteSpace(c))))}"));
+            strategyArguments = new Dictionary<string, object?>()
+            {
+                { Definition.Strategy.Synthesis.InputsVariableName, agentSubPromptsVariable }
+            };
+            stream = synthesisStrategy.InvokeStreamingAsync(strategyArguments, cancellationToken);
+        }
+        return new(Guid.NewGuid().ToString("N"), stream);
     }
 
     /// <summary>
