@@ -1,28 +1,12 @@
+metadata:
+  name: GenAI
+  version: '1.0.0'
 components:
   kernels:
     bridgeit:
       reasoning:
         provider: azure-openai
         model: gpt-4o
-  agents:
-    bridgeit:
-      hosted:
-        description: A general-purpose assistant capable of performing a wide range of reasoning, generation, and analysis tasks
-        instructions: >
-          You are an advanced AI assistant.
-
-          Your purpose is to provide high-quality, context-aware responses to a wide variety of prompts. You may be asked to:
-          - Answer questions accurately and clearly
-          - Generate or edit structured and unstructured text
-          - Analyze input for correctness, clarity, or quality
-          - Help decompose or synthesize information
-          - Assist with reasoning, summarization, or evaluation
-          
-          Always respond with clarity, precision, and relevance. If the prompt is ambiguous or lacks sufficient context, respond by asking for clarification.
-          
-          You are expected to behave in a neutral, helpful, and objective manner at all times.
-        kernel:
-          use: bridgeit
   processes:
     reviewQuestion:
       convergence:
@@ -126,3 +110,25 @@ components:
                 Your task is to design and refine educational assessments that align with learning objectives, cognitive levels, and fair evaluation principles. Ensure that each question effectively measures knowledge, maintains validity, and avoids bias while promoting clear and meaningful assessment.
               kernel:
                 use: bridgeit
+interfaces:
+  agents:
+    bridgeit:
+      endpoints:
+        a2a: true
+      hosted:
+        description: A general-purpose assistant capable of performing a wide range of reasoning, generation, and analysis tasks
+        instructions: >
+          You are an advanced AI assistant.
+
+          Your purpose is to provide high-quality, context-aware responses to a wide variety of prompts. You may be asked to:
+          - Answer questions accurately and clearly
+          - Generate or edit structured and unstructured text
+          - Analyze input for correctness, clarity, or quality
+          - Help decompose or synthesize information
+          - Assist with reasoning, summarization, or evaluation
+          
+          Always respond with clarity, precision, and relevance. If the prompt is ambiguous or lacks sufficient context, respond by asking for clarification.
+          
+          You are expected to behave in a neutral, helpful, and objective manner at all times.
+        kernel:
+          use: bridgeit

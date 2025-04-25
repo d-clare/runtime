@@ -14,15 +14,19 @@
 namespace DClare.Runtime.Application.Configuration;
 
 /// <summary>
-/// Represents the options used to configure the DClare runtime
+/// Represents the options used to configure the application's cache
 /// </summary>
-public record ApplicationOptions
-    : Manifest
+public record CacheOptions
 {
 
     /// <summary>
-    /// Gets/sets options used to configure the application's cache
+    /// Gets/sets the name of the cache provider to use
     /// </summary>
-    public virtual CacheOptions Cache { get; set; } = new();
+    public virtual string Provider { get; set; } = CacheProvider.Memory;
+
+    /// <summary>
+    /// gets/sets a key/value mapping, if any, containing provider-specific configuration
+    /// </summary>
+    public virtual IDictionary<string, object>? Configuration { get; set; }
 
 }

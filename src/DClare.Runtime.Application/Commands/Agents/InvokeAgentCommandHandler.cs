@@ -27,7 +27,7 @@ public class InvokeAgentCommandHandler(IOptions<ApplicationOptions> options, IAg
     /// <inheritdoc/>
     public async Task<IOperationResult<ChatResponseStream>> HandleAsync(InvokeAgentCommand command, CancellationToken cancellationToken = default)
     {
-        if (options.Value.Components == null || options.Value.Components.Agents == null || !options.Value.Components.Agents.TryGetValue(command.Agent, out var agentDefinition) || agentDefinition == null) throw new ProblemDetailsException(Problems.AgentNotFound(command.Agent));
+        if (options.Value.Interfaces == null || options.Value.Interfaces.Agents == null || !options.Value.Interfaces.Agents!.TryGetValue(command.Agent, out var agentDefinition) || agentDefinition == null) throw new ProblemDetailsException(Problems.AgentNotFound(command.Agent));
         var agent = await agentFactory.CreateAsync(command.Agent, agentDefinition, options.Value.Components, cancellationToken).ConfigureAwait(false);
         var response = await agent.InvokeStreamingAsync(command.Message, command.SessionId, cancellationToken).ConfigureAwait(false);
         return this.Ok(response);
