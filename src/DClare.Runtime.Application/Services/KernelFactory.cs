@@ -56,6 +56,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IOAuth2TokenManager oau
             kernelDefinition = (await patchHandler.ApplyPatchAsync(extendedKernelDefinition, kernelDefinition, cancellationToken).ConfigureAwait(false))!;
         }
         var kernelBuilder = Kernel.CreateBuilder();
+        kernelBuilder.Services.AddSingleton(LoggerFactory);
         if (kernelDefinition.Reasoning != null) kernelBuilder = await BuildReasoningCapabilityAsync(kernelBuilder, kernelDefinition.Reasoning, cancellationToken).ConfigureAwait(false);
         if (kernelDefinition.Embedding != null) kernelBuilder = await BuildEmbeddingCapabilityAsync(kernelBuilder, kernelDefinition.Embedding, cancellationToken).ConfigureAwait(false);
         if (kernelDefinition.Toolsets != null && kernelDefinition.Toolsets.Count > 0)
