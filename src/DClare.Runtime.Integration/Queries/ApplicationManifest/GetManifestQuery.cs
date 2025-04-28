@@ -11,25 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Api.Services;
+namespace DClare.Runtime.Integration.Queries.ApplicationManifest;
 
 /// <summary>
-/// Represents an <see cref="IExceptionFilter"/> used to filter <see cref="ProblemDetailsException"/>s
+/// Represents the query used to access the application's manifest
 /// </summary>
-public class ProblemDetailsExceptionFilter
-    : IExceptionFilter
+public class GetManifestQuery
+    : Query<Manifest>
 {
 
-    /// <inheritdoc/>
-    public virtual void OnException(ExceptionContext context)
-    {
-        if (context.Exception is not ProblemDetailsException ex) return;
-        var result = new ObjectResult(ex.Problem)
-        {
-            StatusCode = ex.Problem.Status
-        };
-        context.Result = result;
-        context.ExceptionHandled = true;
-    }
+
 
 }
