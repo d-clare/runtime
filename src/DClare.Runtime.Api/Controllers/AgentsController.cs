@@ -12,6 +12,7 @@
 // limitations under the License.
 
 using DClare.Runtime.Integration.Commands.Agents;
+using Neuroglia.Mediation;
 
 namespace DClare.Runtime.Api.Controllers;
 
