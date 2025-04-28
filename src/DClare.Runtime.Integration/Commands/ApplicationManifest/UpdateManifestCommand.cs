@@ -11,25 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Api.Services;
+namespace DClare.Runtime.Integration.Commands.ApplicationManifest;
 
 /// <summary>
-/// Represents an <see cref="IExceptionFilter"/> used to filter <see cref="ProblemDetailsException"/>s
+/// Represents the command used to update the application's manifest
 /// </summary>
-public class ProblemDetailsExceptionFilter
-    : IExceptionFilter
+/// <param name="manifest">The updated manifest</param>
+public class UpdateManifestCommand(Manifest manifest)
+    : Command
 {
 
-    /// <inheritdoc/>
-    public virtual void OnException(ExceptionContext context)
-    {
-        if (context.Exception is not ProblemDetailsException ex) return;
-        var result = new ObjectResult(ex.Problem)
-        {
-            StatusCode = ex.Problem.Status
-        };
-        context.Result = result;
-        context.ExceptionHandled = true;
-    }
+    /// <summary>
+    /// Gets/sets the updated manifest
+    /// </summary>
+    [Required]
+    public virtual Manifest Manifest { get; set; } = manifest;
 
 }

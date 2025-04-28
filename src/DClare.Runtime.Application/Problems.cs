@@ -95,6 +95,11 @@ public static class Problems
 
         }
 
+        /// <summary>
+        /// Gets the type of problems that occur due to unprocessable or invalid data
+        /// </summary>
+        public static readonly Uri Unprocessable = new(BaseUri, "unprocessable");
+
     }
 
     /// <summary>
@@ -163,6 +168,11 @@ public static class Problems
 
         }
 
+        /// <summary>
+        /// Gets the title of problems that occur due to unprocessable or invalid data
+        /// </summary>
+        public const string Unprocessable = "Unprocessable";
+
     }
 
     /// <summary>
@@ -172,17 +182,17 @@ public static class Problems
     {
 
         /// <summary>
-        /// Gets the status of problems that occur when the runtime fails to find data
-        /// </summary>
-        public const int NotFound = 404;
-        /// <summary>
-        /// Gets the status of problems that occur due to invalid or missing configuration
-        /// </summary>
-        public const int InvalidConfiguration = 422;
-        /// <summary>
         /// Gets the status of problems that occur when the runtime fails to communicate with a remote agent or service, typically due to an invalid response or an unreachable endpoint
         /// </summary>
         public const int BadGateway = 502;
+        /// <summary>
+        /// Gets the status of problems that occur due to unprocessable or invalid data
+        /// </summary>
+        public const int Unprocessable = 422;
+        /// <summary>
+        /// Gets the status of problems that occur when the runtime fails to find data
+        /// </summary>
+        public const int NotFound = 404;
 
     }
 
@@ -199,11 +209,11 @@ public static class Problems
         {
 
             /// <summary>
-            /// Gets the detail of an problem that occurs when the runtime fails to find a specific agent
+            /// Gets the detail of a problem that occurs when the runtime fails to find a specific agent
             /// </summary>
             public const string NotFound = "Failed to found an agent with the specified name '{name}'";
             /// <summary>
-            /// Gets the detail of an problem that occurs when an error is raise during communication with a remote agent
+            /// Gets the detail of a problem that occurs when an error is raise during communication with a remote agent
             /// </summary>
             public const string CommunicationError = "An error occurred while communicating with the remote agent '{name}': {error}";
             /// <summary>
@@ -220,7 +230,7 @@ public static class Problems
         {
 
             /// <summary>
-            /// Gets the detail of an problem that occurs when the runtime fails to find a specific agentic process
+            /// Gets the detail of a problem that occurs when the runtime fails to find a specific agentic process
             /// </summary>
             public const string NotFound = "Failed to found an agentic process with the specified name '{name}'";
 
@@ -233,7 +243,7 @@ public static class Problems
         {
 
             /// <summary>
-            /// Gets the detail of an problem that occurs when the runtime fails to find a specific kernel
+            /// Gets the detail of a problem that occurs when the runtime fails to find a specific kernel
             /// </summary>
             public const string NotFound = "Failed to found a kernel with the specified name '{name}'";
 
@@ -246,11 +256,16 @@ public static class Problems
         {
 
             /// <summary>
-            /// Gets the detail of an problem that occurs when the runtime fails to find a specific toolset
+            /// Gets the detail of a problem that occurs when the runtime fails to find a specific toolset
             /// </summary>
             public const string NotFound = "Failed to found a toolset with the specified name '{name}'";
 
         }
+
+        /// <summary>
+        /// Gets the details of a problem that occurs when attempting to apply an unsupported type of patch
+        /// </summary>
+        public const string UnsupportedPatchType = "The specified patch type '{type}' is not supported";
 
     }
 
@@ -281,7 +296,7 @@ public static class Problems
     /// </summary>
     /// <param name="name">The name of the affected component (e.g., agent, kernel)</param>
     /// <returns>A new <see cref="ProblemDetails"/></returns>
-    public static ProblemDetails InvalidConfiguration(string name) => new(Types.Agents.InvalidConfiguration, Titles.Agents.InvalidConfiguration, Statuses.InvalidConfiguration, StringFormatter.Format(Details.Agents.InvalidConfiguration, name));
+    public static ProblemDetails InvalidConfiguration(string name) => new(Types.Agents.InvalidConfiguration, Titles.Agents.InvalidConfiguration, Statuses.Unprocessable, StringFormatter.Format(Details.Agents.InvalidConfiguration, name));
 
     /// <summary>
     /// Creates a new <see cref="ProblemDetails"/> used to describe a problem that occurs when the runtime fails to find a specific kernel
@@ -296,5 +311,7 @@ public static class Problems
     /// <param name="name">The name of the toolset that cannot be found</param>
     /// <returns>A new <see cref="ProblemDetails"/></returns>
     public static ProblemDetails ToolsetNotFound(string name) => new(Types.Toolsets.NotFound, Titles.Toolsets.NotFound, Statuses.NotFound, StringFormatter.Format(Details.Toolsets.NotFound, name));
+
+    public static ProblemDetails UnsupportedPatchType(string type) => new(Types.Unprocessable, Titles.Unprocessable, Statuses.Unprocessable, StringFormatter.Format(Details.UnsupportedPatchType, type));
 
 }

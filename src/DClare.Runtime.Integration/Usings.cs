@@ -12,6 +12,8 @@
 // limitations under the License.
 
 global using DClare.Runtime.Integration.Models;
+global using DClare.Sdk.Models;
+global using Neuroglia.Data;
 global using Neuroglia.Mediation;
 global using System.ComponentModel.DataAnnotations;
 global using System.Runtime.CompilerServices;

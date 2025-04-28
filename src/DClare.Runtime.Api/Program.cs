@@ -12,25 +12,7 @@
 // limitations under the License.
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddYamlFile("manifest.yaml", true);
-builder.Services.AddOptions<ApplicationOptions>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-builder.Services.AddRouting(options =>
-{
-    options.LowercaseUrls = true;
-    options.LowercaseQueryStrings = true;
-});
-builder.Services
-    .AddControllers(options =>
-{
-    options.Filters.Add<ProblemDetailsExceptionFilter>();
-})
-    .AddJsonOptions(options =>
-{
-    JsonSerializer.DefaultOptionsConfiguration(options.JsonSerializerOptions);
-});
+builder.Services.AddOptions<ApplicationOptions>().Bind(builder.Configuration).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOpenApi();
 builder.Services.AddDClare();
 builder.Services.AddMediator(options =>
@@ -38,8 +20,8 @@ builder.Services.AddMediator(options =>
     options.ScanAssembly(typeof(ApplicationOptions).Assembly);
 });
 builder.Services.AddHttpClient();
-builder.Services.AddA2AAgents(builder.Configuration);
 builder.Services.AddCache(builder.Configuration);
+builder.Services.AddSingleton<IManifestHandler, ManifestHandler>();
 builder.Services.AddSingleton<IOAuth2TokenManager, OAuth2TokenManager>();
 builder.Services.AddSingleton<IChatHistoryManager, ChatHistoryManager>();
 builder.Services.AddSingleton<IKernelPluginManager, KernelPluginManager>();
@@ -47,6 +29,28 @@ builder.Services.AddTransient<IKernelFactory, KernelFactory>();
 builder.Services.AddTransient<IAgentFactory, AgentFactory>();
 builder.Services.AddTransient<IProcessFactory, ProcessFactory>();
 builder.Services.AddTransient<IKernelFunctionStrategyFactory, KernelFunctionStrategyFactory>();
+builder.Services.AddJsonPatchHandler();
+builder.Services.AddJsonMergePatchHandler();
+builder.Services.AddJsonStrategicMergePatchHandler();
+builder.Services.AddA2AAgents(await builder.GetManifestAsync());
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+    options.LowercaseQueryStrings = true;
+});
+builder.Services.AddControllers(options =>
+{
+#pragma warning disable ASP0000
+    var provider = builder.Services.BuildServiceProvider();
+#pragma warning restore ASP0000
+    var yamlSerializer = provider.GetRequiredService<IYamlSerializer>();
+    options.Filters.Add<ProblemDetailsExceptionFilter>();
+    options.InputFormatters.Insert(0, new YamlInputFormatter(yamlSerializer));
+    options.OutputFormatters.Insert(0, new YamlOutputFormatter(yamlSerializer));
+}).AddJsonOptions(options =>
+{
+    JsonSerializer.DefaultOptionsConfiguration(options.JsonSerializerOptions);
+});
 
 var app = builder.Build();
 app.MapOpenApi();
@@ -57,5 +61,4 @@ app.MapScalarApiReference("/api/doc", options =>
 app.MapControllers();
 app.MapA2AWellKnownAgentEndpoint();
 app.MapA2AAgentHttpEndpoint();
-
 await app.RunAsync();

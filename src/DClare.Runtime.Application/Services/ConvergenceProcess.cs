@@ -12,7 +12,6 @@
 // limitations under the License.
 
 using DClare.Sdk.Models.Processes;
-using Json.Schema;
 
 namespace DClare.Runtime.Application.Services;
 
