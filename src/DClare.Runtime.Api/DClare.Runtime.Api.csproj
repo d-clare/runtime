@@ -13,6 +13,8 @@
     <RepositoryType>git</RepositoryType>
     <DebugType>embedded</DebugType>
     <UserSecretsId>19f82167-449f-478c-9d0e-4114a9e4aa69</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
