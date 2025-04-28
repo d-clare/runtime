@@ -30,15 +30,13 @@ public static class IServiceCollectionExtensions
     /// Adds and configures the <see cref="AgentCard"/> used to document the application's hosted agents
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to configure</param>
-    /// <param name="configuration">The current <see cref="IConfiguration"/></param>
+    /// <param name="manifest">The current <see cref="Manifest"/></param>
     /// <returns>The configured <see cref="IServiceCollection"/></returns>
-    public static IServiceCollection AddA2AAgents(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddA2AAgents(this IServiceCollection services, Manifest manifest)
     {
-        var options = new ApplicationOptions();
-        configuration.Bind(options);
-        if (options.Interfaces?.Agents != null)
+        if (manifest.Interfaces?.Agents != null)
         {
-            foreach (var agent in options.Interfaces.Agents.Where(a => a.Value.Hosted != null && a.Value.Endpoints.A2A))
+            foreach (var agent in manifest.Interfaces.Agents.Where(a => a.Value.Hosted != null && a.Value.Endpoints.A2A))
             {
                 services.AddA2AWellKnownAgent((provider, builder) =>
                 {
@@ -62,7 +60,7 @@ public static class IServiceCollectionExtensions
                 services.AddA2AProtocolServer(agent.Key, builder =>
                 {
                     builder
-                        .UseAgentRuntime(provider => ActivatorUtilities.CreateInstance<A2AAgentRuntime>(provider, agent.Key, agent.Value, options.Components!))
+                        .UseAgentRuntime(provider => ActivatorUtilities.CreateInstance<A2AAgentRuntime>(provider, agent.Key, agent.Value, manifest.Components!))
                         .UseDistributedCacheTaskRepository();
                 });
             }

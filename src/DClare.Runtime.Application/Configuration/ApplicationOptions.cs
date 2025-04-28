@@ -16,8 +16,7 @@ namespace DClare.Runtime.Application.Configuration;
 /// <summary>
 /// Represents the options used to configure the DClare runtime
 /// </summary>
-public record ApplicationOptions
-    : Manifest
+public class ApplicationOptions
 {
 
     /// <summary>

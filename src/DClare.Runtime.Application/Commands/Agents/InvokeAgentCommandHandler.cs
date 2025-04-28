@@ -18,17 +18,18 @@ namespace DClare.Runtime.Application.Commands.Agents;
 /// <summary>
 /// Represents the service used to handle <see cref="InvokeAgentCommand"/>s
 /// </summary>
-/// <param name="options">The service used to access the current <see cref="ApplicationOptions"/></param>
+/// <param name="manifestHandler">The service used to handle the application's manifest</param>
 /// <param name="agentFactory">The service used to create <see cref="IAgent"/>s</param>
-public class InvokeAgentCommandHandler(IOptions<ApplicationOptions> options, IAgentFactory agentFactory)
+public class InvokeAgentCommandHandler(IManifestHandler manifestHandler, IAgentFactory agentFactory)
     : ICommandHandler<InvokeAgentCommand, ChatResponseStream>
 {
 
     /// <inheritdoc/>
     public async Task<IOperationResult<ChatResponseStream>> HandleAsync(InvokeAgentCommand command, CancellationToken cancellationToken = default)
     {
-        if (options.Value.Interfaces == null || options.Value.Interfaces.Agents == null || !options.Value.Interfaces.Agents!.TryGetValue(command.Agent, out var agentDefinition) || agentDefinition == null) throw new ProblemDetailsException(Problems.AgentNotFound(command.Agent));
-        var agent = await agentFactory.CreateAsync(command.Agent, agentDefinition, options.Value.Components, cancellationToken).ConfigureAwait(false);
+        var manifest = await manifestHandler.GetManifestAsync(cancellationToken).ConfigureAwait(false);
+        if (manifest.Interfaces == null || manifest.Interfaces.Agents == null || !manifest.Interfaces.Agents!.TryGetValue(command.Agent, out var agentDefinition) || agentDefinition == null) throw new ProblemDetailsException(Problems.AgentNotFound(command.Agent));
+        var agent = await agentFactory.CreateAsync(command.Agent, agentDefinition, manifest.Components, cancellationToken).ConfigureAwait(false);
         var response = await agent.InvokeStreamingAsync(command.Message, command.SessionId, cancellationToken).ConfigureAwait(false);
         return this.Ok(response);
     }
