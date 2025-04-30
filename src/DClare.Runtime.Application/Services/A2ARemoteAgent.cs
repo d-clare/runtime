@@ -59,14 +59,14 @@ public class A2ARemoteAgent(string name, RemoteAgentDefinition definition, Agent
     protected IA2AProtocolClient Client { get; } = client;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
-        var stream = await InvokeStreamingAsync(message, sessionId, cancellationToken).ConfigureAwait(false);
-        return await stream.ToResponseAsync(cancellationToken).ConfigureAwait(false);
+        var stream = await InvokeStreamingAsync(message, sessionId, parameters, cancellationToken).ConfigureAwait(false);
+        return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         var requestParameters = new TaskSendParameters()

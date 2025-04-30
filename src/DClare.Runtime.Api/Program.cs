@@ -45,8 +45,8 @@ builder.Services.AddControllers(options =>
 #pragma warning restore ASP0000
     var yamlSerializer = provider.GetRequiredService<IYamlSerializer>();
     options.Filters.Add<ProblemDetailsExceptionFilter>();
-    options.InputFormatters.Insert(0, new YamlInputFormatter(yamlSerializer));
-    options.OutputFormatters.Insert(0, new YamlOutputFormatter(yamlSerializer));
+    options.InputFormatters.Add(new YamlInputFormatter(yamlSerializer));
+    options.OutputFormatters.Add(new YamlOutputFormatter(yamlSerializer));
 }).AddJsonOptions(options =>
 {
     JsonSerializer.DefaultOptionsConfiguration(options.JsonSerializerOptions);
