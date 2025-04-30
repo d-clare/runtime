@@ -12,7 +12,7 @@
 // limitations under the License.
 
 using DClare.Runtime.Integration.Commands.Agents;
-using Neuroglia.Mediation;
+using System.Text;
 
 namespace DClare.Runtime.Api.Controllers;
 
@@ -20,8 +20,9 @@ namespace DClare.Runtime.Api.Controllers;
 /// Represents the controller used to manage AI Agents
 /// </summary>
 /// <param name="mediator">The service used to mediate calls</param>
+/// <param name="jsonSerializer">The service used to serialize/deserialize data to/from JSON</param>
 [Route("api/[controller]"), ApiController]
-public class AgentsController(IMediator mediator)
+public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer)
     : Controller
 {
 
@@ -38,7 +39,42 @@ public class AgentsController(IMediator mediator)
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess()) return this.Process(result);
-        return Ok(await result.Data!.ToResponseAsync(cancellationToken).ConfigureAwait(false));
+        return Ok(await result.Data!.ToResponseAsync(command.IncludeMetadata, cancellationToken).ConfigureAwait(false));
+    }
+
+    /// <summary>
+    /// Invokes the specified agent
+    /// </summary>
+    /// <param name="command">The command to execute</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
+    [HttpPost("invoke/stream")]
+    [ProducesResponseType(typeof(ChatResponse), (int)HttpStatusCode.OK)]
+    public virtual async Task<IActionResult> InvokeAgentStreamAsync([FromBody] InvokeAgentCommand command, CancellationToken cancellationToken)
+    {
+        if (!this.ModelState.IsValid) return ValidationProblem(this.ModelState);
+        var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess()) return this.Process(result);
+        Response.Headers.ContentType = "text/event-stream";
+        Response.Headers.CacheControl = "no-cache";
+        Response.Headers.Connection = "keep-alive";
+        Response.Headers["X-Response-Id"] = result.Data!.Id;
+        await Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await foreach (var e in result.Data!.Stream.WithCancellation(cancellationToken))
+            {
+                var payload = e with
+                {
+                    Metadata = command.IncludeMetadata ? e.Metadata : null
+                };
+                var sseMessage = $"data: {jsonSerializer.SerializeToText(payload)}\n\n";
+                await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(sseMessage), cancellationToken).ConfigureAwait(false);
+                await Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException) { }
+        return Ok();
     }
 
 }

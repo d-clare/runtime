@@ -39,17 +39,19 @@ public interface IAgent
     /// </summary>
     /// <param name="message">The input message that the agent should respond to</param>
     /// <param name="sessionId">An optional session identifier to preserve state across invocations</param>
+    /// <param name="parameters">A key/value mapping containing the invocation's parameters, if any</param>
     /// <param name="cancellationToken">Token to cancel the streaming operation</param>
     /// <returns>A new <see cref="ChatResponse"/> that describes the result of the invocation</returns>
-    Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, CancellationToken cancellationToken = default);
+    Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Invokes the agent with the provided user message, optionally scoped to a session, and yields a stream of response content
     /// </summary>
     /// <param name="message">The input message that the agent should respond to</param>
     /// <param name="sessionId">An optional session identifier to preserve state across invocations</param>
+    /// <param name="parameters">A key/value mapping containing the invocation's parameters, if any</param>
     /// <param name="cancellationToken">Token to cancel the streaming operation</param>
     /// <returns>A new <see cref="ChatResponseStream"/> that describes the result of the invocation</returns>
-    Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, CancellationToken cancellationToken = default);
+    Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default);
 
 }
