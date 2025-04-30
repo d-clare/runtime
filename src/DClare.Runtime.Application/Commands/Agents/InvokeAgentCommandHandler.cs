@@ -30,7 +30,7 @@ public class InvokeAgentCommandHandler(IManifestHandler manifestHandler, IAgentF
         var manifest = await manifestHandler.GetManifestAsync(cancellationToken).ConfigureAwait(false);
         if (manifest.Interfaces == null || manifest.Interfaces.Agents == null || !manifest.Interfaces.Agents!.TryGetValue(command.Agent, out var agentDefinition) || agentDefinition == null) throw new ProblemDetailsException(Problems.AgentNotFound(command.Agent));
         var agent = await agentFactory.CreateAsync(command.Agent, agentDefinition, manifest.Components, cancellationToken).ConfigureAwait(false);
-        var response = await agent.InvokeStreamingAsync(command.Message, command.SessionId, cancellationToken).ConfigureAwait(false);
+        var response = await agent.InvokeStreamingAsync(command.Message, command.SessionId, command.Parameters, cancellationToken).ConfigureAwait(false);
         return this.Ok(response);
     }
 

@@ -33,7 +33,7 @@ public class KernelFunctionStrategy(KernelFunction function, Kernel kernel)
     protected Kernel Kernel { get; } = kernel;
 
     /// <inheritdoc/>
-    public virtual IAsyncEnumerable<ChatMessage> InvokeAsync(IDictionary<string, object?>? arguments = null, CancellationToken cancellationToken = default) => InvokeStreamingAsync(arguments, cancellationToken).AsMessageStreamAsync(cancellationToken: cancellationToken);
+    public virtual IAsyncEnumerable<ChatMessage> InvokeAsync(IDictionary<string, object?>? arguments = null, CancellationToken cancellationToken = default) => InvokeStreamingAsync(arguments, cancellationToken).AsMessageStreamAsync(true, cancellationToken: cancellationToken);
 
     /// <inheritdoc/>
     public virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> InvokeStreamingAsync(IDictionary<string, object?>? arguments = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)

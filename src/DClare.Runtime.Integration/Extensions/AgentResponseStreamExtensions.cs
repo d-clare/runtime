@@ -23,8 +23,9 @@ public static class AgentResponseStreamExtensions
     /// Converts the <see cref="ChatResponseStream"/> into a new <see cref="ChatResponse"/>
     /// </summary>
     /// <param name="response">The <see cref="ChatResponseStream"/> to convert</param>
+    /// <param name="includeMetadata">A boolean indicating whether or not to include metadata</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new <see cref="ChatResponse"/></returns>
-    public static async Task<ChatResponse> ToResponseAsync(this ChatResponseStream response, CancellationToken cancellationToken = default) => new(response.Id, await response.Stream.AsMessageStreamAsync(cancellationToken).ToListAsync(cancellationToken).ConfigureAwait(false));
+    public static async Task<ChatResponse> ToResponseAsync(this ChatResponseStream response, bool includeMetadata, CancellationToken cancellationToken = default) => new(response.Id, await response.Stream.AsMessageStreamAsync(includeMetadata, cancellationToken).ToListAsync(cancellationToken).ConfigureAwait(false));
 
 }
