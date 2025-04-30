@@ -23,9 +23,10 @@ public static class IAsyncEnumerableExtensions
     /// Converts the specified stream of <see cref="StreamingChatMessageContent"/>s into a stream of <see cref="ChatMessage"/>s
     /// </summary>
     /// <param name="stream">The stream to convert</param>
+    /// <param name="includeMetadata">A boolean indicating whether or not to include metadata</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new stream of <see cref="ChatMessage"/>s</returns>
-    public static async IAsyncEnumerable<ChatMessage> AsMessageStreamAsync(this IAsyncEnumerable<StreamingChatMessageContent> stream, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public static async IAsyncEnumerable<ChatMessage> AsMessageStreamAsync(this IAsyncEnumerable<StreamingChatMessageContent> stream, bool includeMetadata, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string? currentRole = null;
         var currentContent = new StringBuilder();
@@ -39,7 +40,7 @@ public static class IAsyncEnumerableExtensions
                 currentRole = role;
                 currentContent.Clear();
                 currentContent.Append(part.Content ?? string.Empty);
-                if (part.Metadata != null)
+                if (includeMetadata && part.Metadata != null)
                 {
                     metadata ??= new Dictionary<string, object?>();
                     foreach (var kvp in part.Metadata) metadata[kvp.Key] = kvp.Value;
@@ -47,7 +48,7 @@ public static class IAsyncEnumerableExtensions
             }
             else
             {
-                if (part.Metadata != null)
+                if (includeMetadata && part.Metadata != null)
                 {
                     metadata ??= new Dictionary<string, object?>();
                     foreach (var kvp in part.Metadata) metadata[kvp.Key] = kvp.Value;

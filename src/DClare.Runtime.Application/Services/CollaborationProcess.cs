@@ -41,13 +41,15 @@ public class CollaborationProcess(CollaborationAgenticProcessDefinition definiti
     protected ILogger Logger { get; } = logger;
 
     /// <inheritdoc/>
-    public Task<ChatResponse> InvokeAsync(string prompt, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(string prompt, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+        var stream = await InvokeStreamingAsync(prompt, sessionId, parameters, cancellationToken).ConfigureAwait(false);
+        return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public Task<ChatResponseStream> InvokeStreamingAsync(string prompt, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual Task<ChatResponseStream> InvokeStreamingAsync(string prompt, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

@@ -60,21 +60,21 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     protected IJsonSerializer JsonSerializer { get; } = jsonSerializer;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
-        var stream = await InvokeStreamingAsync(message, sessionId, cancellationToken).ConfigureAwait(false);
-        return await stream.ToResponseAsync(cancellationToken).ConfigureAwait(false);
+        var stream = await InvokeStreamingAsync(message, sessionId, parameters, cancellationToken).ConfigureAwait(false);
+        return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
         var chatHistory = string.IsNullOrWhiteSpace(sessionId) ? null : await ChatHistoryManager.GetChatHistoryAsync(Name, sessionId, cancellationToken).ConfigureAwait(false);
         chatHistory ??= string.IsNullOrWhiteSpace(Definition.Instructions) ? new() : new(Definition.Instructions);
         var responseId = Guid.NewGuid().ToString("N");
-        var stream = StreamResponseAsync(message, chatHistory, sessionId, cancellationToken);
+        var stream = StreamResponseAsync(message, chatHistory, sessionId, parameters, cancellationToken);
         return new ChatResponseStream(responseId, stream);
     }
 
@@ -84,9 +84,10 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     /// <param name="userMessage">The user's input message to send to the agent</param>
     /// <param name="chatHistory">The chat history to include in the prompt and update with the final assistant message</param>
     /// <param name="sessionId">The id of the session, if any, in the context of which to invoke the agent</param>
+    /// <param name="parameters">A key/value mapping containing the invocation's parameters, if any</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>An asynchronous stream of <see cref="Integration.Models.StreamingChatMessageContent"/> values representing the streamed response</returns>
-    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, ChatHistory chatHistory, string? sessionId = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, ChatHistory chatHistory, string? sessionId = null, IDictionary<string, object>? parameters = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userMessage);
         ArgumentNullException.ThrowIfNull(chatHistory);
@@ -95,6 +96,11 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
         chatHistory.AddUserMessage(userMessage);
         var answerBuilder = new StringBuilder();
         var promptSettings = Kernel.Services.GetRequiredService<PromptExecutionSettings>();
+        if (parameters != null)
+        {
+            promptSettings.ExtensionData ??= new Dictionary<string, object>();
+            foreach (var parameter in parameters) promptSettings.ExtensionData[parameter.Key] = parameter.Value;
+        }
         await foreach (var message in ChatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, promptSettings, Kernel, cancellationToken).ConfigureAwait(false))
         {
             answerBuilder.Append(message.Content);

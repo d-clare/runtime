@@ -28,7 +28,7 @@ public class InvokeProcessCommandHandler(IManifestHandler manifestAccessor, IPro
         var manifest = await manifestAccessor.GetManifestAsync(cancellationToken).ConfigureAwait(false);
         if (manifest.Interfaces == null || manifest.Interfaces.Processes == null || !manifest.Interfaces.Processes!.TryGetValue(command.Process, out var processDefinition) || processDefinition == null) throw new ProblemDetailsException(Problems.AgenticProcessNotFound(command.Process));
         var process = await processFactory.CreateAsync(processDefinition, manifest.Components, cancellationToken).ConfigureAwait(false);
-        var response = await process.InvokeStreamingAsync(command.Message, command.SessionId, cancellationToken).ConfigureAwait(false);
+        var response = await process.InvokeStreamingAsync(command.Message, command.SessionId, command.Parameters, cancellationToken).ConfigureAwait(false);
         return this.Ok(response);
     }
 

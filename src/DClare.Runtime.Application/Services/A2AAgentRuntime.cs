@@ -53,7 +53,7 @@ public class A2AAgentRuntime(string name, AgentDefinition definition, ComponentC
     {
         ArgumentNullException.ThrowIfNull(task);
         var agent = await AgentFactory.CreateAsync(Name, Definition, Components, cancellationToken).ConfigureAwait(false);
-        var response = await agent.InvokeAsync(task.Message.ToText()!, task.SessionId, cancellationToken).ConfigureAwait(false);
+        var response = await agent.InvokeAsync(task.Message.ToText()!, task.SessionId, null, cancellationToken).ConfigureAwait(false);
         var messages = response.Messages.ToList();
         for (int i = 0; i < messages.Count; i++)
         {

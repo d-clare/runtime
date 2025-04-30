@@ -59,15 +59,15 @@ public class ConvergenceProcess(ConvergenceAgenticProcessDefinition definition, 
     protected IJsonSerializer JsonSerializer { get; } = jsonSerializer;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string prompt, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(string prompt, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
-        var stream = await InvokeStreamingAsync(prompt, sessionId, cancellationToken).ConfigureAwait(false);
-        return await stream.ToResponseAsync(cancellationToken).ConfigureAwait(false);
+        var stream = await InvokeStreamingAsync(prompt, sessionId, parameters, cancellationToken).ConfigureAwait(false);
+        return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string prompt, string? sessionId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string prompt, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
         var agents = await Definition.Agents.ToAsyncEnumerable().SelectAwait(async a => await AgentFactory.CreateAsync(a.Key, a.Value, Components, cancellationToken).ConfigureAwait(false)).ToListAsync(cancellationToken).ConfigureAwait(false);
@@ -102,7 +102,7 @@ public class ConvergenceProcess(ConvergenceAgenticProcessDefinition definition, 
         {
             var agent = agents.FirstOrDefault(a => a.Name == agentSubPrompt.Key);
             if (agent == null) continue;
-            agentSubPromptTasks.Add(InvokeAgentAsync(agent, agentSubPrompt.Value, sessionId, cancellationToken));
+            agentSubPromptTasks.Add(InvokeAgentAsync(agent, agentSubPrompt.Value, sessionId, parameters, cancellationToken));
         }
         var agentSubPromptResponses = await Task.WhenAll(agentSubPromptTasks).ConfigureAwait(false);
         IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> stream;
@@ -153,15 +153,16 @@ public class ConvergenceProcess(ConvergenceAgenticProcessDefinition definition, 
     /// <param name="agent">The <see cref="IAgent"/> to invoke</param>
     /// <param name="prompt">The prompt to invoke the <see cref="IAgent"/> with</param>
     /// <param name="sessionId">An optional session identifier to preserve state across invocations</param>
+    /// <param name="parameters">A key/value mapping containing the invocation's parameters, if any</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new <see cref="AgentResponse"/></returns>
-    protected virtual async Task<AgentResponse> InvokeAgentAsync(IAgent agent, string prompt, string? sessionId, CancellationToken cancellationToken)
+    protected virtual async Task<AgentResponse> InvokeAgentAsync(IAgent agent, string prompt, string? sessionId, IDictionary<string, object>? parameters, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(agent);
         ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
         try
         {
-            var response = await agent.InvokeAsync(prompt, sessionId, cancellationToken).ConfigureAwait(false);
+            var response = await agent.InvokeAsync(prompt, sessionId, parameters, cancellationToken).ConfigureAwait(false);
             return new(agent.Name, (int)HttpStatusCode.OK, response);
         }
         catch (Exception ex)

@@ -38,6 +38,11 @@ public class InvokeAgentCommand
     public virtual string? SessionId { get; set; }
 
     /// <summary>
+    /// Gets/sets a value indicating whether message metadata should be included in the response
+    /// </summary>
+    public virtual bool IncludeMetadata { get; set; } = true;
+
+    /// <summary>
     /// Gets/sets a key/value mapping of the invocation's parameters, if any
     /// </summary>
     public virtual IDictionary<string, object>? Parameters { get; set; }
