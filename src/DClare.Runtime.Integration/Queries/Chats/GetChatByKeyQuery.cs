@@ -1,4 +1,4 @@
-﻿// Copyright © 2025-Present The DClare Authors
+﻿// Copyright � 2025-Present The DClare Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -11,14 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-global using DClare.Runtime.Integration.Models;
-global using DClare.Sdk.Models;
-global using Neuroglia.Data;
-global using Neuroglia.Mediation;
-global using System.ComponentModel;
-global using System.ComponentModel.DataAnnotations;
-global using System.Runtime.CompilerServices;
-global using System.Runtime.Serialization;
-global using System.Text;
-global using System.Text.Json.Serialization;
-global using YamlDotNet.Serialization;
+namespace DClare.Runtime.Integration.Queries.Chats;
+
+/// <summary>
+/// Represents the query used to get a chat by key
+/// </summary>
+[DataContract, Description("The query used to get a chat by key")]
+public class GetChatByKeyQuery
+    : Query<Chat>
+{
+
+    /// <summary>
+    /// Gets/sets the unique key of the chat to get
+    /// </summary>
+    public virtual required string Key { get; set; }
+
+}

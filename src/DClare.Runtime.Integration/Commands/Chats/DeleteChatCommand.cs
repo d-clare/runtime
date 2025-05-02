@@ -1,4 +1,4 @@
-﻿// Copyright © 2025-Present The DClare Authors
+﻿// Copyright � 2025-Present The DClare Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -11,14 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-global using DClare.Runtime.Integration.Models;
-global using DClare.Sdk.Models;
-global using Neuroglia.Data;
-global using Neuroglia.Mediation;
-global using System.ComponentModel;
-global using System.ComponentModel.DataAnnotations;
-global using System.Runtime.CompilerServices;
-global using System.Runtime.Serialization;
-global using System.Text;
-global using System.Text.Json.Serialization;
-global using YamlDotNet.Serialization;
+namespace DClare.Runtime.Integration.Commands.Chats;
+
+/// <summary>
+/// Represents the command used to delete a chat
+/// </summary>
+[DataContract, Description("The command used to delete a chat")]
+public class DeleteChatCommand
+    : Command
+{
+
+    /// <summary>
+    /// Gets/sets the unique key of the chat to delete
+    /// </summary>
+    public virtual string Key { get; set; } = null!;
+
+}

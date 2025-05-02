@@ -14,8 +14,41 @@
 namespace DClare.Runtime.Integration.Models;
 
 /// <summary>
-/// Represents an object that describes the result of invoking a chat with a user message, including a unique response identifier and a stream of output messages
+/// Represents the result of invoking a chat with a user message, including a unique response identifier and a stream of output messages.
 /// </summary>
-/// <param name="Id">The response's unique identifier</param>
-/// <param name="Stream">A stream of chat messages produced by the chat</param>
-public record ChatResponseStream(string Id, IAsyncEnumerable<StreamingChatMessageContent> Stream);
+[DataContract, Description("The result of invoking a chat with a user message, including a unique response identifier and a stream of output messages.")]
+public record ChatResponseStream
+{
+
+    /// <summary>
+    /// Initializes a new <see cref="ChatResponseStream"/>
+    /// </summary>
+    public ChatResponseStream() { }
+
+    /// <summary>
+    /// Initializes a new <see cref="ChatResponseStream"/>
+    /// </summary>
+    /// <param name="id">The response's unique identifier.</param>
+    /// <param name="stream">The stream of chat messages produced by the chat.</param>
+    public ChatResponseStream(string id, IAsyncEnumerable<StreamingChatMessageContent> stream)
+    {
+        Id = id;
+        Stream = stream;
+    }
+
+    /// <summary>
+    /// Gets or sets the unique identifier of the chat response.
+    /// </summary>
+    [Description("The response's unique identifier")]
+    [DataMember(Name = "id", Order = 1), JsonPropertyName("id"), JsonPropertyOrder(1), YamlMember(Alias = "id", Order = 1)]
+    public virtual string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the stream of chat messages produced by the agent.
+    /// </summary>
+    [Description("A stream of chat messages produced by the chat")]
+    [DataMember(Name = "stream", Order = 2), JsonPropertyName("stream"), JsonPropertyOrder(2), YamlMember(Alias = "stream", Order = 2)]
+    public virtual IAsyncEnumerable<StreamingChatMessageContent> Stream { get; set; } = default!;
+
+}
+
