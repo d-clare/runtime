@@ -96,6 +96,14 @@ public static class Problems
         }
 
         /// <summary>
+        /// Gets the type of problems that occur due to a forbidden action
+        /// </summary>
+        public static readonly Uri Forbidden = new(BaseUri, "forbidden");
+        /// <summary>
+        /// Gets the type of problems that occur due to an unauthorized action
+        /// </summary>
+        public static readonly Uri Unauthorized = new(BaseUri, "unauthorized");
+        /// <summary>
         /// Gets the type of problems that occur due to unprocessable or invalid data
         /// </summary>
         public static readonly Uri Unprocessable = new(BaseUri, "unprocessable");
@@ -169,6 +177,14 @@ public static class Problems
         }
 
         /// <summary>
+        /// Gets the title of problems that occur due to a forbidden action
+        /// </summary>
+        public const string Forbidden = "Forbidden";
+        /// <summary>
+        /// Gets the title of problems that occur due to an unauthorized action
+        /// </summary>
+        public const string Unauthorized = "Unauthorized";
+        /// <summary>
         /// Gets the title of problems that occur due to unprocessable or invalid data
         /// </summary>
         public const string Unprocessable = "Unprocessable";
@@ -185,6 +201,14 @@ public static class Problems
         /// Gets the status of problems that occur when the runtime fails to communicate with a remote agent or service, typically due to an invalid response or an unreachable endpoint
         /// </summary>
         public const int BadGateway = 502;
+        /// <summary>
+        /// Gets the status of problems that occur due to a forbidden action
+        /// </summary>
+        public const int Forbidden = 403;
+        /// <summary>
+        /// Gets the status of problems that occur due to an unauthorized action
+        /// </summary>
+        public const int Unauthorized = 401;
         /// <summary>
         /// Gets the status of problems that occur due to unprocessable or invalid data
         /// </summary>
@@ -292,6 +316,18 @@ public static class Problems
     public static ProblemDetails AgenticProcessNotFound(string name) => new(Types.AgenticProcesses.NotFound, Titles.AgenticProcesses.NotFound, Statuses.NotFound, StringFormatter.Format(Details.AgenticProcesses.NotFound, name));
 
     /// <summary>
+    /// Creates a new <see cref="ProblemDetails"/> used to describe a problem that occurs when the trying to execute a forbidden action
+    /// </summary>
+    /// <returns>A new <see cref="ProblemDetails"/></returns>
+    public static ProblemDetails Forbidden() => new(Types.Forbidden, Titles.Forbidden, Statuses.Forbidden);
+
+    /// <summary>
+    /// Creates a new <see cref="ProblemDetails"/> used to describe a problem that occurs when the trying to execute an unauthorized action
+    /// </summary>
+    /// <returns>A new <see cref="ProblemDetails"/></returns>
+    public static ProblemDetails Unauthorized() => new(Types.Unauthorized, Titles.Unauthorized, Statuses.Unauthorized);
+
+    /// <summary>
     /// Creates a <see cref="ProblemDetails"/> describing a configuration issue
     /// </summary>
     /// <param name="name">The name of the affected component (e.g., agent, kernel)</param>
@@ -312,6 +348,11 @@ public static class Problems
     /// <returns>A new <see cref="ProblemDetails"/></returns>
     public static ProblemDetails ToolsetNotFound(string name) => new(Types.Toolsets.NotFound, Titles.Toolsets.NotFound, Statuses.NotFound, StringFormatter.Format(Details.Toolsets.NotFound, name));
 
+    /// <summary>
+    /// Creates a new <see cref="ProblemDetails"/> used to describe a problem that occurs when attempting to apply a patch of unsupported type
+    /// </summary>
+    /// <param name="type">The unsupported patch type</param>
+    /// <returns>A new <see cref="ProblemDetails"/></returns>
     public static ProblemDetails UnsupportedPatchType(string type) => new(Types.Unprocessable, Titles.Unprocessable, Statuses.Unprocessable, StringFormatter.Format(Details.UnsupportedPatchType, type));
 
 }

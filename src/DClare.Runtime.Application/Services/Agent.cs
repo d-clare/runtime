@@ -11,6 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
@@ -19,9 +21,9 @@ namespace DClare.Runtime.Application.Services;
 /// <param name="name">The agent's name</param>
 /// <param name="definition">The agent's definition</param>
 /// <param name="kernel">The agent's kernel</param>
-/// <param name="chatHistoryManager">The service used to manage <see cref="ChatHistory"/> instances</param>
+/// <param name="chatManager">The service used to manage <see cref="Chat"/>s</param>
 /// <param name="jsonSerializer">The service used to serialize/deserialize data to/from JSON</param>
-public class HostedAgent(string name, HostedAgentDefinition definition, Kernel kernel, IChatHistoryManager chatHistoryManager, IJsonSerializer jsonSerializer)
+public class Agent(string name, HostedAgentDefinition definition, Kernel kernel, IChatManager chatManager, IJsonSerializer jsonSerializer)
     : IAgent
 {
 
@@ -50,9 +52,9 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     protected IChatCompletionService? ChatCompletionService { get; } = kernel.GetAllServices<IChatCompletionService>().LastOrDefault();
 
     /// <summary>
-    /// Gets the service used to manage <see cref="ChatHistory"/> instances
+    /// Gets the service used to manage <see cref="Chat"/>s
     /// </summary>
-    protected IChatHistoryManager ChatHistoryManager { get; } = chatHistoryManager;
+    protected IChatManager ChatManager { get; } = chatManager;
 
     /// <summary>
     /// Gets the service used to serialize/deserialize data to/from JSON
@@ -60,21 +62,20 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     protected IJsonSerializer JsonSerializer { get; } = jsonSerializer;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var stream = await InvokeStreamingAsync(message, sessionId, parameters, cancellationToken).ConfigureAwait(false);
+        var stream = await InvokeStreamingAsync(message, options, cancellationToken).ConfigureAwait(false);
         return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
-        var chatHistory = string.IsNullOrWhiteSpace(sessionId) ? null : await ChatHistoryManager.GetChatHistoryAsync(Name, sessionId, cancellationToken).ConfigureAwait(false);
-        chatHistory ??= string.IsNullOrWhiteSpace(Definition.Instructions) ? new() : new(Definition.Instructions);
+        var chat = string.IsNullOrWhiteSpace(options?.ChatId) ? null : await ChatManager.GetAsync(options.ChatId, options.UserId, Name, cancellationToken).ConfigureAwait(false);
         var responseId = Guid.NewGuid().ToString("N");
-        var stream = StreamResponseAsync(message, chatHistory, sessionId, parameters, cancellationToken);
+        var stream = StreamResponseAsync(message, chat, options, cancellationToken);
         return new ChatResponseStream(responseId, stream);
     }
 
@@ -82,24 +83,24 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     /// Streams the response of the agent by sending the user's message and existing chat history to the configured chat completion service
     /// </summary>
     /// <param name="userMessage">The user's input message to send to the agent</param>
-    /// <param name="chatHistory">The chat history to include in the prompt and update with the final assistant message</param>
-    /// <param name="sessionId">The id of the session, if any, in the context of which to invoke the agent</param>
-    /// <param name="parameters">A key/value mapping containing the invocation's parameters, if any</param>
+    /// <param name="chat">The current chat, if any</param>
+    /// <param name="options">The options used to configure the agent's invocation</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>An asynchronous stream of <see cref="Integration.Models.StreamingChatMessageContent"/> values representing the streamed response</returns>
-    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, ChatHistory chatHistory, string? sessionId = null, IDictionary<string, object>? parameters = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, Chat? chat, AgentInvocationOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userMessage);
-        ArgumentNullException.ThrowIfNull(chatHistory);
         if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
+        var chatHistory = chat == null ? null : new ChatHistory(chat.Messages.Select(m => new ChatMessageContent(new(m.Role), m.Content, metadata: m.Metadata)));
+        chatHistory ??= string.IsNullOrWhiteSpace(Definition.Instructions) ? new() : new(Definition.Instructions);
         // todo: await AddMemoryContextAsync(userMessage, chatHistory, cancellationToken).ConfigureAwait(false);
         chatHistory.AddUserMessage(userMessage);
         var answerBuilder = new StringBuilder();
         var promptSettings = Kernel.Services.GetRequiredService<PromptExecutionSettings>();
-        if (parameters != null)
+        if (options?.Parameters != null)
         {
             promptSettings.ExtensionData ??= new Dictionary<string, object>();
-            foreach (var parameter in parameters) promptSettings.ExtensionData[parameter.Key] = parameter.Value;
+            foreach (var parameter in options.Parameters) promptSettings.ExtensionData[parameter.Key] = parameter.Value;
         }
         await foreach (var message in ChatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, promptSettings, Kernel, cancellationToken).ConfigureAwait(false))
         {
@@ -109,7 +110,13 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
         }
         var answer = answerBuilder.ToString();
         chatHistory.AddAssistantMessage(answer);
-        if (!string.IsNullOrWhiteSpace(sessionId)) await ChatHistoryManager.SetChatHistoryAsync(Name, sessionId, chatHistory, cancellationToken).ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(options?.ChatId))
+        {
+            var messages = chatHistory.Select(m => new ChatMessage(m.Role == AuthorRole.Tool ? AuthorRole.Assistant.Label : m.Role.Label, m.Content, m.Metadata));
+            chat ??= new(options.ChatId, options.UserId!, Name, null, messages);
+            chat.Messages = messages;
+            await ChatManager.AddOrUpdateAsync(chat, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     protected virtual Task AddMemoryContextAsync(string userMessage, ChatHistory chatHistory, CancellationToken cancellationToken = default)

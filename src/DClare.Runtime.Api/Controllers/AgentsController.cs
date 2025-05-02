@@ -12,7 +12,6 @@
 // limitations under the License.
 
 using DClare.Runtime.Integration.Commands.Agents;
-using System.Text;
 
 namespace DClare.Runtime.Api.Controllers;
 
@@ -21,8 +20,9 @@ namespace DClare.Runtime.Api.Controllers;
 /// </summary>
 /// <param name="mediator">The service used to mediate calls</param>
 /// <param name="jsonSerializer">The service used to serialize/deserialize data to/from JSON</param>
+/// <param name="jsonOptions">The service used to access the current <see cref="JsonOptions"/></param>
 [Route("api/[controller]"), ApiController]
-public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer)
+public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer, IOptions<JsonOptions> jsonOptions)
     : Controller
 {
 
@@ -32,14 +32,15 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
     /// <param name="command">The command to execute</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
-    [HttpPost("invoke")]
+    [HttpPost("invoke", Name = "Invoke Agent")]
+    [EndpointDescription("Invokes the specified AI agent using the provided input message and options, processes the interaction, and returns a chat response")]
     [ProducesResponseType(typeof(ChatResponse), (int)HttpStatusCode.OK)]
     public virtual async Task<IActionResult> InvokeAgentAsync([FromBody] InvokeAgentCommand command, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess()) return this.Process(result);
-        return Ok(await result.Data!.ToResponseAsync(command.IncludeMetadata, cancellationToken).ConfigureAwait(false));
+        return Ok(await result.Data!.ToResponseAsync(command.Options?.IncludeMetadata ?? false, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -48,13 +49,24 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
     /// <param name="command">The command to execute</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
-    [HttpPost("invoke/stream")]
-    [ProducesResponseType(typeof(ChatResponse), (int)HttpStatusCode.OK)]
-    public virtual async Task<IActionResult> InvokeAgentStreamAsync([FromBody] InvokeAgentCommand command, CancellationToken cancellationToken)
+    [HttpPost("invoke/stream", Name = "Invoke Agent (Streamed)")]
+    [EndpointDescription("Invokes the specified AI agent using the provided input message and options, processes the interaction, and returns a streamed result")]
+    [ProducesResponseType(typeof(IEnumerable<StreamingChatMessageContent>), (int)HttpStatusCode.OK)]
+    public virtual async Task InvokeAgentStreamAsync([FromBody] InvokeAgentCommand command, CancellationToken cancellationToken)
     {
-        if (!this.ModelState.IsValid) return ValidationProblem(this.ModelState);
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            await System.Text.Json.JsonSerializer.SerializeAsync(Response.Body, ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState), jsonOptions.Value.JsonSerializerOptions, cancellationToken);
+            return;
+        }
         var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
-        if (!result.IsSuccess()) return this.Process(result);
+        if (!result.IsSuccess())
+        {
+            Response.StatusCode = result.Status;
+            await System.Text.Json.JsonSerializer.SerializeAsync(Response.Body, ProblemDetailsFactory.CreateProblemDetails(HttpContext), jsonOptions.Value.JsonSerializerOptions, cancellationToken);
+            return;
+        }
         Response.Headers.ContentType = "text/event-stream";
         Response.Headers.CacheControl = "no-cache";
         Response.Headers.Connection = "keep-alive";
@@ -66,7 +78,7 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
             {
                 var payload = e with
                 {
-                    Metadata = command.IncludeMetadata ? e.Metadata : null
+                    Metadata = command.Options?.IncludeMetadata ?? false ? e.Metadata : null
                 };
                 var sseMessage = $"data: {jsonSerializer.SerializeToText(payload)}\n\n";
                 await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(sseMessage), cancellationToken).ConfigureAwait(false);
@@ -74,7 +86,6 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
             }
         }
         catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException) { }
-        return Ok();
     }
 
 }

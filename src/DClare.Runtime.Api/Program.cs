@@ -19,16 +19,15 @@ builder.Services.AddMediator(options =>
 {
     options.ScanAssembly(typeof(ApplicationOptions).Assembly);
 });
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddCache(builder.Configuration);
 builder.Services.AddSingleton<IManifestHandler, ManifestHandler>();
 builder.Services.AddSingleton<IOAuth2TokenManager, OAuth2TokenManager>();
-builder.Services.AddSingleton<IChatHistoryManager, ChatHistoryManager>();
+builder.Services.AddSingleton<IChatManager, ChatManager>();
 builder.Services.AddSingleton<IKernelPluginManager, KernelPluginManager>();
 builder.Services.AddTransient<IKernelFactory, KernelFactory>();
 builder.Services.AddTransient<IAgentFactory, AgentFactory>();
-builder.Services.AddTransient<IProcessFactory, ProcessFactory>();
-builder.Services.AddTransient<IKernelFunctionStrategyFactory, KernelFunctionStrategyFactory>();
 builder.Services.AddJsonPatchHandler();
 builder.Services.AddJsonMergePatchHandler();
 builder.Services.AddJsonStrategicMergePatchHandler();

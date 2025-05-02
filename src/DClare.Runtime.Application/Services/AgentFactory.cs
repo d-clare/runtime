@@ -55,21 +55,21 @@ public class AgentFactory(IServiceProvider serviceProvider, IKernelFactory kerne
         }
         return agentDefinition.Type switch
         {
-            AgentType.Hosted => CreateHostedAgentAsync(name, definition.Hosted!, components, cancellationToken),
-            AgentType.Remote => CreateRemoteAgentAsync(name, definition.Remote!, components, cancellationToken),
+            AgentType.Hosted => CreateAgentAsync(name, definition.Hosted!, components, cancellationToken),
+            AgentType.Remote => CreateAgentProxyAsync(name, definition.Remote!, components, cancellationToken),
             _ => throw new NotSupportedException($"The specified agent type '{agentDefinition.Type}' is not supported")
         };
     }
 
     /// <summary>
-    /// Creates a new <see cref="HostedAgent"/>
+    /// Creates a new <see cref="Agent"/>
     /// </summary>
     /// <param name="name">The agent's name</param>
     /// <param name="definition">The agent's definition</param>
     /// <param name="components">A collection, if any, containing the reusable components potentially referenced by the <see cref="IAgent"/> to create</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new <see cref="IAgent"/></returns>
-    protected virtual async Task<IAgent> CreateHostedAgentAsync(string name, HostedAgentDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default)
+    protected virtual async Task<IAgent> CreateAgentAsync(string name, HostedAgentDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(definition);
@@ -81,7 +81,7 @@ public class AgentFactory(IServiceProvider serviceProvider, IKernelFactory kerne
             agentDefinition = (await patchHandler.ApplyPatchAsync(extendedAgentDefinition, agentDefinition, cancellationToken).ConfigureAwait(false))!;
         }
         var kernel = await KernelFactory.CreateAsync(agentDefinition.Kernel, components, cancellationToken).ConfigureAwait(false);
-        return ActivatorUtilities.CreateInstance<HostedAgent>(ServiceProvider, name, agentDefinition, kernel);
+        return ActivatorUtilities.CreateInstance<Agent>(ServiceProvider, name, agentDefinition, kernel);
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class AgentFactory(IServiceProvider serviceProvider, IKernelFactory kerne
     /// <param name="components">A collection, if any, containing the reusable components potentially referenced by the <see cref="IAgent"/> to create</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new <see cref="IAgent"/></returns>
-    protected virtual Task<IAgent> CreateRemoteAgentAsync(string name, RemoteAgentDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default)
+    protected virtual Task<IAgent> CreateAgentProxyAsync(string name, RemoteAgentDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(definition);
@@ -116,7 +116,7 @@ public class AgentFactory(IServiceProvider serviceProvider, IKernelFactory kerne
             Endpoint = definition.Channel.A2A.Endpoint.Uri
         });
         var a2aClient = ActivatorUtilities.CreateInstance<A2AProtocolHttpClient>(ServiceProvider, HttpClient, a2aClientOptions);
-        return ActivatorUtilities.CreateInstance<A2ARemoteAgent>(ServiceProvider, name, definition, manifest, a2aClient);
+        return ActivatorUtilities.CreateInstance<A2AAgentProxy>(ServiceProvider, name, definition, manifest, a2aClient);
     }
 
 }

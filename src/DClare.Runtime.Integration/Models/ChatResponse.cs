@@ -14,8 +14,41 @@
 namespace DClare.Runtime.Integration.Models;
 
 /// <summary>
-/// Represents the result of invoking a chat
+/// Represents a response sent by an AI Agent to a prompt request
 /// </summary>
-/// <param name="Id">The response's unique identifier</param>
-/// <param name="Messages">A stream of messages produced by the chat</param>
-public record ChatResponse(string Id, IEnumerable<ChatMessage> Messages);
+[DataContract, Description("A response sent by an AI Agent to a prompt request")]
+public record ChatResponse
+{
+
+    /// <summary>
+    /// Initializes a new <see cref="ChatResponse"/>
+    /// </summary>
+    public ChatResponse() { }
+
+    /// <summary>
+    /// Initializes a new <see cref="ChatResponse"/>
+    /// </summary>
+    /// <param name="id">The response's unique identifier.</param>
+    /// <param name="messages">The messages produced by the chat.</param>
+    public ChatResponse(string id, IEnumerable<ChatMessage> messages)
+    {
+        Id = id;
+        Messages = messages;
+    }
+
+    /// <summary>
+    /// Gets or sets the unique identifier of the chat response.
+    /// </summary>
+    [Description("The response's unique identifier")]
+    [DataMember(Name = "id", Order = 1), JsonPropertyName("id"), JsonPropertyOrder(1), YamlMember(Alias = "id", Order = 1)]
+    public virtual string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the collection of messages returned by the agent.
+    /// </summary>
+    [Description("A stream of messages produced by the chat")]
+    [DataMember(Name = "messages", Order = 2), JsonPropertyName("messages"), JsonPropertyOrder(2), YamlMember(Alias = "messages", Order = 2)]
+    public virtual IEnumerable<ChatMessage> Messages { get; set; } = [];
+
+}
+
