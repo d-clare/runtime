@@ -30,19 +30,19 @@ public static class IAsyncEnumerableExtensions
     {
         string? currentRole = null;
         var currentContent = new StringBuilder();
-        IDictionary<string, object?>? metadata = null;
+        Dictionary<string, object?>? metadata = null;
         await foreach (var part in stream.WithCancellation(cancellationToken))
         {
             var role = part.Role?.ToString();
             if (role != null)
             {
-                if (currentContent.Length > 0 && currentRole != null) yield return new ChatMessage(currentRole, currentContent.ToString(), metadata);
+                if (currentContent.Length > 0 && currentRole != null) yield return new ChatMessage(currentRole, currentContent.ToString(), metadata?.AsReadOnly());
                 currentRole = role;
                 currentContent.Clear();
                 currentContent.Append(part.Content ?? string.Empty);
                 if (includeMetadata && part.Metadata != null)
                 {
-                    metadata ??= new Dictionary<string, object?>();
+                    metadata ??= [];
                     foreach (var kvp in part.Metadata) metadata[kvp.Key] = kvp.Value;
                 }
             }
@@ -50,13 +50,13 @@ public static class IAsyncEnumerableExtensions
             {
                 if (includeMetadata && part.Metadata != null)
                 {
-                    metadata ??= new Dictionary<string, object?>();
+                    metadata ??= [];
                     foreach (var kvp in part.Metadata) metadata[kvp.Key] = kvp.Value;
                 }
                 currentContent.Append(part.Content ?? string.Empty);
             }
         }
-        if (currentContent.Length > 0) yield return new ChatMessage(currentRole ?? "assistant", currentContent.ToString(), metadata);
+        if (currentContent.Length > 0) yield return new ChatMessage(currentRole ?? "assistant", currentContent.ToString(), metadata?.AsReadOnly());
     }
 
 }

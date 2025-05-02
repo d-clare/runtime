@@ -16,6 +16,7 @@ namespace DClare.Runtime.Integration.Commands.Agents;
 /// <summary>
 /// Represents the command to invoke an AI Agent with a message, optionally within a conversational session
 /// </summary>
+[DataContract]
 public class InvokeAgentCommand
     : Command<ChatResponseStream>
 {
@@ -23,28 +24,24 @@ public class InvokeAgentCommand
     /// <summary>
     /// Gets/sets the name of the agent to invoke
     /// </summary>
+    [Description("The name of the agent to invoke")]
     [Required, MinLength(1)]
+    [DataMember(Name = "agent", Order = 1), JsonPropertyName("agent"), JsonPropertyOrder(1), YamlMember(Alias = "agent", Order = 1)]
     public virtual string Agent { get; set; } = null!;
 
     /// <summary>
     /// Gets/sets the input message to process
     /// </summary>
+    [Description("The input message to process")]
     [Required, MinLength(1)]
+    [DataMember(Name = "message", Order = 2), JsonPropertyName("message"), JsonPropertyOrder(2), YamlMember(Alias = "message", Order = 2)]
     public virtual string Message { get; set; } = null!;
 
     /// <summary>
-    /// Gets/sets the session identifier, if any, to maintain conversational context across invocations
+    /// Gets/sets the options used to configure the agent's invocation
     /// </summary>
-    public virtual string? SessionId { get; set; }
-
-    /// <summary>
-    /// Gets/sets a value indicating whether message metadata should be included in the response
-    /// </summary>
-    public virtual bool IncludeMetadata { get; set; } = true;
-
-    /// <summary>
-    /// Gets/sets a key/value mapping of the invocation's parameters, if any
-    /// </summary>
-    public virtual IDictionary<string, object>? Parameters { get; set; }
+    [Description("The options used to configure the agent's invocation")]
+    [DataMember(Name = "options", Order = 3), JsonPropertyName("options"), JsonPropertyOrder(3), YamlMember(Alias = "options", Order = 3)]
+    public virtual AgentInvocationOptions? Options { get; set; }
 
 }

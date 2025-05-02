@@ -26,7 +26,7 @@ namespace DClare.Runtime.Application.Services;
 /// <param name="definition">The agent's definition</param>
 /// <param name="manifest">The agent's manifest</param>
 /// <param name="client">The service used to interact with the remote agent using the A2A protocol</param>
-public class A2ARemoteAgent(string name, RemoteAgentDefinition definition, AgentCard manifest, IA2AProtocolClient client)
+public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentCard manifest, IA2AProtocolClient client)
     : IAgent
 {
 
@@ -59,19 +59,19 @@ public class A2ARemoteAgent(string name, RemoteAgentDefinition definition, Agent
     protected IA2AProtocolClient Client { get; } = client;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var stream = await InvokeStreamingAsync(message, sessionId, parameters, cancellationToken).ConfigureAwait(false);
+        var stream = await InvokeStreamingAsync(message, options, cancellationToken).ConfigureAwait(false);
         return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, string? sessionId = null, IDictionary<string, object>? parameters = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         var requestParameters = new TaskSendParameters()
         {
-            SessionId = sessionId,
+            SessionId = options?.SessionId,
             Message = new()
             {
                 Role = MessageRole.User,

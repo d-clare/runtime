@@ -38,7 +38,7 @@ public static class ArtifactExtensions
             switch (part)
             {
                 case TextPart textPart:
-                    yield return new Integration.Models.StreamingChatMessageContent(textPart.Text, AuthorRole.Assistant.Label, artifact.Metadata!);
+                    yield return new Integration.Models.StreamingChatMessageContent(textPart.Text, AuthorRole.Assistant.Label, artifact.Metadata?.AsReadOnly()!);
                     break;
                 case FilePart filePart:
                     var fileContentBuilder = new StringBuilder();
@@ -48,14 +48,14 @@ public static class ArtifactExtensions
                     if (!string.IsNullOrWhiteSpace(filePart.File.Bytes)) fileContentBuilder.AppendLine($"Base64  : {filePart.File.Bytes}");
                     else if (filePart.File.Uri is not null) fileContentBuilder.AppendLine($"URI     : {filePart.File.Uri}");
                     fileContentBuilder.AppendLine("----------------");
-                    yield return new Integration.Models.StreamingChatMessageContent(fileContentBuilder.ToString(), AuthorRole.Assistant.Label, artifact.Metadata!);
+                    yield return new Integration.Models.StreamingChatMessageContent(fileContentBuilder.ToString(), AuthorRole.Assistant.Label, artifact.Metadata?.AsReadOnly()!);
                     break;
                 case DataPart dataPart:
                     var jsonContentBuilder = new StringBuilder();
                     jsonContentBuilder.AppendLine("```json");
                     jsonContentBuilder.AppendLine(JsonSerializer.Serialize(dataPart.Data));
                     jsonContentBuilder.AppendLine("```");
-                    yield return new Integration.Models.StreamingChatMessageContent(jsonContentBuilder.ToString(), AuthorRole.Assistant.Label, artifact.Metadata!);
+                    yield return new Integration.Models.StreamingChatMessageContent(jsonContentBuilder.ToString(), AuthorRole.Assistant.Label, artifact.Metadata?.AsReadOnly()!);
                     break;
                 default:
                     throw new NotSupportedException($"The specified part type '{part.Type ?? "None"}' is not supported");
