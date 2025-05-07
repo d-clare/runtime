@@ -14,23 +14,24 @@
 namespace DClare.Runtime.Integration.Models;
 
 /// <summary>
-/// Represents a chat message
+/// Represents a chat message.
 /// </summary>
-[DataContract, Description("A chat message")]
+[Description("Represents a chat message.")]
+[DataContract]
 public record ChatMessage
 {
 
     /// <summary>
-    /// Initializes a new <see cref="ChatMessage"/>
+    /// Initializes a new <see cref="ChatMessage"/>.
     /// </summary>
     public ChatMessage() { }
 
     /// <summary>
-    /// Initializes a new <see cref="ChatMessage"/>
+    /// Initializes a new <see cref="ChatMessage"/>.
     /// </summary>
-    /// <param name="role">The message's role</param>
-    /// <param name="content">The message's content</param>
-    /// <param name="metadata">The message's metadata, if any</param>
+    /// <param name="role">The message's role.</param>
+    /// <param name="content">The message's content.</param>
+    /// <param name="metadata">The message's metadata, if any.</param>
     public ChatMessage(string role, string? content, IReadOnlyDictionary<string, object?>? metadata = null)
     {
         Role = role;

@@ -1,4 +1,4 @@
-// Copyright � 2025-Present The DClare Authors
+// Copyright © 2025-Present The DClare Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -11,8 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.AspNetCore.HttpOverrides;
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOptions<ApplicationOptions>().Bind(builder.Configuration).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOpenApi();
@@ -21,19 +19,30 @@ builder.Services.AddMediator(options =>
 {
     options.ScanAssembly(typeof(ApplicationOptions).Assembly);
 });
+builder.Services.AddResourceCommands();
+builder.Services.AddResourceQueries();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddCache(builder.Configuration);
-builder.Services.AddSingleton<IManifestHandler, ManifestHandler>();
+builder.Services.AddRedisDatabase(builder.Configuration.GetConnectionString("redis")!);
+builder.Services.AddHostedService<DClare.Runtime.Application.Services.DatabaseInitializer>();
+builder.Services.AddSingleton<IUserAccessor, HttpContextUserAccessor>();
+builder.Services.AddScoped<IUserInfoProvider, UserInfoProvider>();
+builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
+builder.Services.AddScoped<IAdmissionControl, AdmissionControl>();
+builder.Services.AddScoped<IVersionControl, VersionControl>();
+builder.Services.AddSingleton<IPatchHandler, JsonMergePatchHandler>();
+builder.Services.AddSingleton<IPatchHandler, JsonPatchHandler>();
+builder.Services.AddSingleton<IPatchHandler, JsonStrategicMergePatchHandler>();
 builder.Services.AddSingleton<IOAuth2TokenManager, OAuth2TokenManager>();
-builder.Services.AddSingleton<IChatManager, ChatManager>();
+builder.Services.AddScoped<IComponentDefinitionResolver, ComponentDefinitionResolver>();
+builder.Services.AddSingleton<IChatSessionStore, DistributedCacheChatSessionStore>();
 builder.Services.AddSingleton<IKernelPluginManager, KernelPluginManager>();
 builder.Services.AddTransient<IKernelFactory, KernelFactory>();
 builder.Services.AddTransient<IAgentFactory, AgentFactory>();
 builder.Services.AddJsonPatchHandler();
 builder.Services.AddJsonMergePatchHandler();
 builder.Services.AddJsonStrategicMergePatchHandler();
-builder.Services.AddA2AAgents(await builder.GetManifestAsync());
 builder.Services.AddRouting(options =>
 {
     options.LowercaseUrls = true;

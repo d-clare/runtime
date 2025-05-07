@@ -15,9 +15,6 @@ using DClare.Sdk.Models.Authentication;
 using Duende.IdentityModel.Client;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.Collections.Concurrent;
-using System.Net.Mime;
-using System.Security.Claims;
 
 namespace DClare.Runtime.Application.Services;
 

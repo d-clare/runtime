@@ -14,19 +14,19 @@
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Defines the fundamentals of a service used to create <see cref="IAgent"/>s
+/// Defines the fundamentals of a service used to create <see cref="IAgent"/>s.
 /// </summary>
 public interface IAgentFactory
 {
 
     /// <summary>
-    /// Creates a new <see cref="IAgent"/>
+    /// Creates a new <see cref="IAgent"/>.
     /// </summary>
-    /// <param name="name">The name of the <see cref="IAgent"/> to create</param>
-    /// <param name="definition">The definition of the <see cref="IAgent"/> to create</param>
-    /// <param name="components">A collection, if any, containing the reusable components potentially referenced by the <see cref="IAgent"/> to create</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>A new <see cref="IAgent"/></returns>
-    Task<IAgent> CreateAsync(string name, AgentDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default);
+    /// <param name="name">The name of the <see cref="IAgent"/> to create.</param>
+    /// <param name="definition">The definition of the <see cref="IAgent"/> to create.</param>
+    /// <param name="context">The current <see cref="ComponentResolutionContext"/>, if any.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    /// <returns>A new <see cref="IAgent"/>.</returns>
+    Task<IAgent> CreateAsync(string name, AgentDefinition definition, ComponentResolutionContext? context = null, CancellationToken cancellationToken = default);
 
 }

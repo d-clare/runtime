@@ -24,7 +24,7 @@ public static class IAsyncEnumerableExtensions
     /// </summary>
     /// <param name="stream">The stream to convert</param>
     /// <param name="includeMetadata">A boolean indicating whether or not to include metadata</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>A new stream of <see cref="ChatMessage"/>s</returns>
     public static async IAsyncEnumerable<ChatMessage> AsMessageStreamAsync(this IAsyncEnumerable<StreamingChatMessageContent> stream, bool includeMetadata, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {

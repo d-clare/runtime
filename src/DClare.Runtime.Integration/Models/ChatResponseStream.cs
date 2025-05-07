@@ -16,17 +16,18 @@ namespace DClare.Runtime.Integration.Models;
 /// <summary>
 /// Represents the result of invoking a chat with a user message, including a unique response identifier and a stream of output messages.
 /// </summary>
-[DataContract, Description("The result of invoking a chat with a user message, including a unique response identifier and a stream of output messages.")]
+[Description("Represents the result of invoking a chat with a user message, including a unique response identifier and a stream of output messages.")]
+[DataContract]
 public record ChatResponseStream
 {
 
     /// <summary>
-    /// Initializes a new <see cref="ChatResponseStream"/>
+    /// Initializes a new <see cref="ChatResponseStream"/>.
     /// </summary>
     public ChatResponseStream() { }
 
     /// <summary>
-    /// Initializes a new <see cref="ChatResponseStream"/>
+    /// Initializes a new <see cref="ChatResponseStream"/>.
     /// </summary>
     /// <param name="id">The response's unique identifier.</param>
     /// <param name="stream">The stream of chat messages produced by the chat.</param>
@@ -51,4 +52,3 @@ public record ChatResponseStream
     public virtual IAsyncEnumerable<StreamingChatMessageContent> Stream { get; set; } = default!;
 
 }
-

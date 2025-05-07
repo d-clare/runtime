@@ -14,19 +14,20 @@
 namespace DClare.Runtime.Integration.Models;
 
 /// <summary>
-/// Represents a response sent by an AI Agent to a prompt request
+/// Represents a response sent by an AI Agent to a prompt request.
 /// </summary>
-[DataContract, Description("A response sent by an AI Agent to a prompt request")]
+[Description("Represents a response sent by an AI Agent to a prompt request.")]
+[DataContract]
 public record ChatResponse
 {
 
     /// <summary>
-    /// Initializes a new <see cref="ChatResponse"/>
+    /// Initializes a new <see cref="ChatResponse"/>.
     /// </summary>
     public ChatResponse() { }
 
     /// <summary>
-    /// Initializes a new <see cref="ChatResponse"/>
+    /// Initializes a new <see cref="ChatResponse"/>.
     /// </summary>
     /// <param name="id">The response's unique identifier.</param>
     /// <param name="messages">The messages produced by the chat.</param>
@@ -51,4 +52,3 @@ public record ChatResponse
     public virtual IEnumerable<ChatMessage> Messages { get; set; } = [];
 
 }
-

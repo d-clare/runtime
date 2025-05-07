@@ -1,4 +1,4 @@
-﻿// Copyright � 2025-Present The DClare Authors
+﻿// Copyright © 2025-Present The DClare Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -11,62 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using A2A.Models;
-using A2A.Server;
-using A2A.Server.Infrastructure;
+using DClare.Runtime.Application.Commands.Resources;
+using DClare.Runtime.Application.Queries.Resources;
+using DClare.Runtime.Integration.Commands.Resources;
+using DClare.Runtime.Integration.Queries.Resources;
 
 namespace DClare.Runtime.Application;
 
 /// <summary>
-/// Defines extensions for <see cref="IServiceCollection"/>s
+/// Defines extensions for <see cref="IServiceCollection"/>s.
 /// </summary>
 public static class IServiceCollectionExtensions
 {
 
-    const string ConnectionStringConfigurationPropertyName = "connectionString";
     const string InstanceNameConfigurationPropertyName = "instanceName";
-
-    /// <summary>
-    /// Adds and configures the <see cref="AgentCard"/> used to document the application's hosted agents
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to configure</param>
-    /// <param name="manifest">The current <see cref="Manifest"/></param>
-    /// <returns>The configured <see cref="IServiceCollection"/></returns>
-    public static IServiceCollection AddA2AAgents(this IServiceCollection services, Manifest manifest)
-    {
-        if (manifest.Interfaces?.Agents != null)
-        {
-            foreach (var agent in manifest.Interfaces.Agents.Where(a => a.Value.Hosted != null && a.Value.Endpoints.A2A))
-            {
-                services.AddA2AWellKnownAgent((provider, builder) =>
-                {
-                    builder
-                        .WithName(agent.Key)
-                        .WithDescription(agent.Value.Hosted!.Description!)
-                        .WithVersion("1.0.0")
-                        .WithUrl(new($"/a2a/{agent.Key}", UriKind.RelativeOrAbsolute));
-                    if (agent.Value.Hosted.Skills != null)
-                    {
-                        foreach (var skill in agent.Value.Hosted.Skills)
-                        {
-                            builder
-                                .WithSkill(skillBuilder => skillBuilder
-                                    .WithId(skill.Name.ToCamelCase())
-                                    .WithName(skill.Name)
-                                    .WithDescription(skill.Description!));
-                        }
-                    }
-                });
-                services.AddA2AProtocolServer(agent.Key, builder =>
-                {
-                    builder
-                        .UseAgentRuntime(provider => ActivatorUtilities.CreateInstance<A2AAgentRuntime>(provider, agent.Key, agent.Value, manifest.Components!))
-                        .UseDistributedCacheTaskRepository();
-                });
-            }
-        }
-        return services;
-    }
 
     /// <summary>
     /// Adds and configures the application's cache
@@ -87,12 +45,125 @@ public static class IServiceCollectionExtensions
                 services.AddStackExchangeRedisCache(redis =>
                 {
                     if (options.Cache.Configuration == null) throw new NullReferenceException($"Configuration must be set when using the specified provider '{options.Cache.Provider}'");
-                    var configuration = new Dictionary<string, object>(options.Cache.Configuration, StringComparer.OrdinalIgnoreCase);
-                    if (!configuration.TryGetValue(ConnectionStringConfigurationPropertyName, out var value) || value is not string connectionString || string.IsNullOrWhiteSpace(connectionString)) throw new NullReferenceException($"The '{ConnectionStringConfigurationPropertyName}' configuration property must be set when using the specified provider '{options.Cache.Provider}'");
+                    var connectionString = configuration.GetConnectionString("redis");
+                    var configurationProperties = new Dictionary<string, object>(options.Cache.Configuration, StringComparer.OrdinalIgnoreCase);
                     redis.Configuration = connectionString;
-                    if (configuration.TryGetValue(InstanceNameConfigurationPropertyName, out value) && value is string instanceName) redis.InstanceName = instanceName;
+                    if (configurationProperties.TryGetValue(InstanceNameConfigurationPropertyName, out var value) && value is string instanceName) redis.InstanceName = instanceName;
                 });
                 break;
+        }
+        return services;
+    }
+
+    /// <summary>
+    /// Registers and configures generic resource query handlers.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to configure.</param>
+    /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
+    public static IServiceCollection AddResourceQueries(this IServiceCollection services)
+    {
+        var resourceTypes = typeof(Workflow).Assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract && !t.IsGenericType && !t.IsInterface && typeof(Resource).IsAssignableFrom(t)).ToList();
+        resourceTypes.Add(typeof(Namespace));
+        foreach (var queryableType in resourceTypes)
+        {
+            var serviceLifetime = ServiceLifetime.Scoped;
+            Type queryType;
+            Type resultType;
+            Type handlerServiceType;
+            Type handlerImplementationType;
+
+            queryType = typeof(GetResourceQuery<>).MakeGenericType(queryableType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(queryableType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(queryType, resultType);
+            handlerImplementationType = typeof(GetResourceQueryHandler<>).MakeGenericType(queryableType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            queryType = typeof(GetResourceDefinitionQuery<>).MakeGenericType(queryableType);
+            resultType = typeof(IOperationResult<IResourceDefinition>);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(queryType, resultType);
+            handlerImplementationType = typeof(GetResourceDefinitionQueryHandler<>).MakeGenericType(queryableType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            queryType = typeof(GetResourcesQuery<>).MakeGenericType(queryableType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(typeof(IAsyncEnumerable<>).MakeGenericType(queryableType));
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(queryType, resultType);
+            handlerImplementationType = typeof(GetResourcesQueryHandler<>).MakeGenericType(queryableType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            queryType = typeof(ListResourcesQuery<>).MakeGenericType(queryableType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(typeof(Neuroglia.Data.Infrastructure.ResourceOriented.ICollection<>).MakeGenericType(queryableType));
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(queryType, resultType);
+            handlerImplementationType = typeof(ListResourcesQueryHandler<>).MakeGenericType(queryableType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            queryType = typeof(WatchResourcesQuery<>).MakeGenericType(queryableType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(typeof(IAsyncEnumerable<>).MakeGenericType(typeof(IResourceWatchEvent<>).MakeGenericType(queryableType)));
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(queryType, resultType);
+            handlerImplementationType = typeof(WatchResourcesQueryHandler<>).MakeGenericType(queryableType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            queryType = typeof(MonitorResourceQuery<>).MakeGenericType(queryableType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(typeof(IAsyncEnumerable<>).MakeGenericType(typeof(IResourceWatchEvent<>).MakeGenericType(queryableType)));
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(queryType, resultType);
+            handlerImplementationType = typeof(MonitorResourceQueryHandler<>).MakeGenericType(queryableType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+        }
+        return services;
+    }
+
+    /// <summary>
+    /// Registers and configures generic resource command handlers.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to configure.</param>
+    /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
+    public static IServiceCollection AddResourceCommands(this IServiceCollection services)
+    {
+        var resourceTypes = typeof(Workflow).Assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract && !t.IsGenericType && !t.IsInterface && typeof(Resource).IsAssignableFrom(t)).ToList();
+        resourceTypes.Add(typeof(Namespace));
+        foreach (var resourceType in resourceTypes)
+        {
+            var serviceLifetime = ServiceLifetime.Scoped;
+            Type commandType;
+            Type resultType;
+            Type handlerServiceType;
+            Type handlerImplementationType;
+
+            commandType = typeof(CreateResourceCommand<>).MakeGenericType(resourceType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(resourceType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(commandType, resultType);
+            handlerImplementationType = typeof(CreateResourceCommandHandler<>).MakeGenericType(resourceType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            commandType = typeof(UpdateResourceCommand<>).MakeGenericType(resourceType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(resourceType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(commandType, resultType);
+            handlerImplementationType = typeof(UpdateResourceCommandHandler<>).MakeGenericType(resourceType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            commandType = typeof(UpdateResourceStatusCommand<>).MakeGenericType(resourceType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(resourceType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(commandType, resultType);
+            handlerImplementationType = typeof(UpdateResourceStatusCommandHandler<>).MakeGenericType(resourceType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            commandType = typeof(PatchResourceCommand<>).MakeGenericType(resourceType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(resourceType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(commandType, resultType);
+            handlerImplementationType = typeof(PatchResourceCommandHandler<>).MakeGenericType(resourceType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            commandType = typeof(PatchResourceStatusCommand<>).MakeGenericType(resourceType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(resourceType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(commandType, resultType);
+            handlerImplementationType = typeof(PatchResourceStatusCommandHandler<>).MakeGenericType(resourceType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
+            commandType = typeof(DeleteResourceCommand<>).MakeGenericType(resourceType);
+            resultType = typeof(IOperationResult<>).MakeGenericType(resourceType);
+            handlerServiceType = typeof(IRequestHandler<,>).MakeGenericType(commandType, resultType);
+            handlerImplementationType = typeof(DeleteResourceCommandHandler<>).MakeGenericType(resourceType);
+            services.Add(new ServiceDescriptor(handlerServiceType, handlerImplementationType, serviceLifetime));
+
         }
         return services;
     }

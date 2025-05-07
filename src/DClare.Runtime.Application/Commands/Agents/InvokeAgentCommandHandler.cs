@@ -16,29 +16,28 @@ using DClare.Runtime.Integration.Commands.Agents;
 namespace DClare.Runtime.Application.Commands.Agents;
 
 /// <summary>
-/// Represents the service used to handle <see cref="InvokeAgentCommand"/>s
+/// Represents the service used to handle <see cref="InvokeAgentCommand"/>s.
 /// </summary>
-/// <param name="logger">The service used to perform logging</param>
-/// <param name="manifestHandler">The service used to handle the application's manifest</param>
-/// <param name="agentFactory">The service used to create <see cref="IAgent"/>s</param>
-/// <param name="httpContextAccessor">The service used to access the current <see cref="HttpContext"/></param>
-public class InvokeAgentCommandHandler(ILogger<InvokeAgentCommandHandler> logger, IManifestHandler manifestHandler, IAgentFactory agentFactory, IHttpContextAccessor httpContextAccessor)
+/// <param name="logger">The service used to perform logging.</param>
+/// <param name="componentDefinitionResolver">The service used to resolve <see cref="ReferenceableComponentDefinition"/>s.</param>
+/// <param name="agentFactory">The service used to create <see cref="IAgent"/>s.</param>
+/// <param name="userAccessor">The service used to access the current user.</param>
+public class InvokeAgentCommandHandler(ILogger<InvokeAgentCommandHandler> logger, IComponentDefinitionResolver componentDefinitionResolver, IAgentFactory agentFactory, IUserAccessor userAccessor)
     : ICommandHandler<InvokeAgentCommand, ChatResponseStream>
 {
 
     /// <inheritdoc/>
     public async Task<IOperationResult<ChatResponseStream>> HandleAsync(InvokeAgentCommand command, CancellationToken cancellationToken = default)
     {
-        var manifest = await manifestHandler.GetManifestAsync(cancellationToken).ConfigureAwait(false);
-        if (manifest.Interfaces == null || manifest.Interfaces.Agents == null || !manifest.Interfaces.Agents!.TryGetValue(command.Agent, out var agentDefinition) || agentDefinition == null) throw new ProblemDetailsException(Problems.AgentNotFound(command.Agent));
-        var agent = await agentFactory.CreateAsync(command.Agent, agentDefinition, manifest.Components, cancellationToken).ConfigureAwait(false);
-        var userId = httpContextAccessor.HttpContext.User.Identity?.IsAuthenticated == true ? httpContextAccessor.HttpContext.User.FindFirst(JwtClaimTypes.Subject)?.Value : command.Options?.UserId;
-        var invocationOptions = command.Options ?? new();
+        var agentDefinition = await componentDefinitionResolver.ResolveAsync<AgentDefinition>(command.Agent.GetQualifiedName(), null, cancellationToken).ConfigureAwait(false);
+        var agent = await agentFactory.CreateAsync(command.Agent.Name, agentDefinition, null, cancellationToken).ConfigureAwait(false);
+        var userId = userAccessor.User?.FindFirst(JwtClaimTypes.Subject)?.Value;
+        var invocationOptions = command.Parameters.Options ?? new();
         invocationOptions = invocationOptions with
         {
             UserId = userId
         };
-        if(string.IsNullOrWhiteSpace(userId) && !string.IsNullOrWhiteSpace(invocationOptions.ChatId))
+        if (string.IsNullOrWhiteSpace(userId) && !string.IsNullOrWhiteSpace(invocationOptions.ChatId))
         {
             logger.LogWarning("Chat ID '{ChatId}' was ignored because the user ID could not be resolved — messages cannot be correlated to a specific chat without a user context.", invocationOptions.ChatId);
             invocationOptions = invocationOptions with
@@ -46,7 +45,7 @@ public class InvokeAgentCommandHandler(ILogger<InvokeAgentCommandHandler> logger
                 ChatId = null
             };
         }
-        var response = await agent.InvokeStreamingAsync(command.Message, invocationOptions, cancellationToken).ConfigureAwait(false);
+        var response = await agent.InvokeStreamingAsync(command.Parameters.Message, invocationOptions, cancellationToken).ConfigureAwait(false);
         return this.Ok(response);
     }
 

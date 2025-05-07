@@ -23,36 +23,48 @@ namespace DClare.Runtime.Api.Controllers;
 /// <param name="jsonOptions">The service used to access the current <see cref="JsonOptions"/></param>
 [Route("api/[controller]"), ApiController]
 public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer, IOptions<JsonOptions> jsonOptions)
-    : Controller
+    : NamespacedResourceController<Agent>(mediator, jsonSerializer)
 {
 
     /// <summary>
-    /// Invokes the specified agent
+    /// Invokes the specified agent.
     /// </summary>
-    /// <param name="command">The command to execute</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <param name="namespace">The namespace the agent to invoke belongs to.</param>
+    /// <param name="name">The name of the agent to invoke.</param>
+    /// <param name="parameters">The invocation parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
-    [HttpPost("invoke", Name = "Invoke Agent")]
+    [HttpPost("{namespace}/{name}/invoke", Name = "Invoke Agent")]
     [EndpointDescription("Invokes the specified AI agent using the provided input message and options, processes the interaction, and returns a chat response")]
     [ProducesResponseType(typeof(ChatResponse), (int)HttpStatusCode.OK)]
-    public virtual async Task<IActionResult> InvokeAgentAsync([FromBody] InvokeAgentCommand command, CancellationToken cancellationToken)
+    public virtual async Task<IActionResult> InvokeAgentAsync([Description("The namespace the agent to invoke belongs to.")] string @namespace, [Description("The name of the agent to invoke.")] string name, [FromBody, Description("The invocation parameters.")] InvokeAgentCommandParameters parameters, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+        var result = await Mediator.ExecuteAsync(new InvokeAgentCommand()
+        {
+            Agent = new()
+            {
+                Namespace = @namespace,
+                Name = name
+            },
+            Parameters = parameters
+        }, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess()) return this.Process(result);
-        return Ok(await result.Data!.ToResponseAsync(command.Options?.IncludeMetadata ?? false, cancellationToken).ConfigureAwait(false));
+        return Ok(await result.Data!.ToResponseAsync(parameters.Options?.IncludeMetadata ?? false, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
-    /// Invokes the specified agent
+    /// Invokes the specified agent.
     /// </summary>
-    /// <param name="command">The command to execute</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <param name="namespace">The namespace the agent to invoke belongs to.</param>
+    /// <param name="name">The name of the agent to invoke.</param>
+    /// <param name="parameters">The invocation parameters.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
-    [HttpPost("invoke/stream", Name = "Invoke Agent (Streamed)")]
+    [HttpPost("{namespace}/{name}/invoke/stream", Name = "Invoke Agent (Streamed)")]
     [EndpointDescription("Invokes the specified AI agent using the provided input message and options, processes the interaction, and returns a streamed result")]
     [ProducesResponseType(typeof(IEnumerable<StreamingChatMessageContent>), (int)HttpStatusCode.OK)]
-    public virtual async Task InvokeAgentStreamAsync([FromBody] InvokeAgentCommand command, CancellationToken cancellationToken)
+    public virtual async Task InvokeAgentStreamAsync([Description("The namespace the agent to invoke belongs to.")] string @namespace, [Description("The name of the agent to invoke.")] string name, [FromBody, Description("The invocation parameters.")] InvokeAgentCommandParameters parameters, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -60,7 +72,15 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
             await System.Text.Json.JsonSerializer.SerializeAsync(Response.Body, ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState), jsonOptions.Value.JsonSerializerOptions, cancellationToken);
             return;
         }
-        var result = await mediator.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+        var result = await Mediator.ExecuteAsync(new InvokeAgentCommand()
+        {
+            Agent = new()
+            {
+                Namespace = @namespace,
+                Name = name
+            },
+            Parameters = parameters
+        }, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess())
         {
             Response.StatusCode = result.Status;
@@ -78,9 +98,9 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
             {
                 var payload = e with
                 {
-                    Metadata = command.Options?.IncludeMetadata ?? false ? e.Metadata : null
+                    Metadata = parameters.Options?.IncludeMetadata ?? false ? e.Metadata : null
                 };
-                var sseMessage = $"data: {jsonSerializer.SerializeToText(payload)}\n\n";
+                var sseMessage = $"data: {JsonSerializer.SerializeToText(payload)}\n\n";
                 await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(sseMessage), cancellationToken).ConfigureAwait(false);
                 await Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
             }

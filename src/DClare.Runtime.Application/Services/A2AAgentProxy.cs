@@ -20,12 +20,12 @@ using A2A.Requests;
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Represents a remote <see cref="IAgent"/> implementation that is invoked through an external communication channel
+/// Represents a remote <see cref="IAgent"/> implementation that is invoked through an external communication channel.
 /// </summary>
-/// <param name="name">The agent's name</param>
-/// <param name="definition">The agent's definition</param>
-/// <param name="manifest">The agent's manifest</param>
-/// <param name="client">The service used to interact with the remote agent using the A2A protocol</param>
+/// <param name="name">The agent's name.</param>
+/// <param name="definition">The agent's definition.</param>
+/// <param name="manifest">The agent's manifest.</param>
+/// <param name="client">The service used to interact with the remote agent using the A2A protocol.</param>
 public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentCard manifest, IA2AProtocolClient client)
     : IAgent
 {
@@ -37,24 +37,23 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
     public string? Description => Manifest.Description;
 
     /// <inheritdoc/>
-    public IReadOnlyCollection<AgentSkillDefinition> Skills { get; } = [.. manifest.Skills.Select(s => new AgentSkillDefinition() 
-    { 
-        Name = s.Name,
-        Description = s.Description,
-    })];
+    public IReadOnlyDictionary<string, AgentSkillDefinition> Skills { get; } = manifest.Skills.ToDictionary(s => s.Name, s => new AgentSkillDefinition()
+    {
+        Description = s.Description
+    });
 
     /// <summary>
-    /// Gets the agent's manifest
+    /// Gets the agent's manifest.
     /// </summary>
     protected AgentCard Manifest { get; } = manifest;
 
     /// <summary>
-    /// Gets the agent's definition
+    /// Gets the agent's definition.
     /// </summary>
     protected RemoteAgentDefinition Definition { get; } = definition;
 
     /// <summary>
-    /// Gets the service used to interact with the remote agent using the A2A protocol
+    /// Gets the service used to interact with the remote agent using the A2A protocol.
     /// </summary>
     protected IA2AProtocolClient Client { get; } = client;
 

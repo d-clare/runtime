@@ -24,7 +24,7 @@ namespace DClare.Runtime.Application.Services;
 /// <param name="definition">The definition of the <see cref="IAgent"/> to invoke</param>
 /// <param name="components">A collection, if any, containing the reusable components available to the <see cref="IProcess"/></param>
 /// <param name="agentFactory">The service used to create <see cref="IAgent"/>s</param>
-public class A2AAgentRuntime(string name, AgentDefinition definition, ComponentCollectionDefinition? components, IAgentFactory agentFactory)
+public class A2AAgentRuntime(string name, AgentDefinition definition, IAgentFactory agentFactory)
     : IAgentRuntime
 {
 
@@ -39,11 +39,6 @@ public class A2AAgentRuntime(string name, AgentDefinition definition, ComponentC
     protected AgentDefinition Definition { get; } = definition;
 
     /// <summary>
-    /// Gets a collection, if any, containing the reusable components available to the <see cref="IProcess"/>
-    /// </summary>
-    protected ComponentCollectionDefinition? Components { get; } = components;
-
-    /// <summary>
     /// Gets the service used to create <see cref="IAgent"/>s
     /// </summary>
     protected IAgentFactory AgentFactory { get; } = agentFactory;
@@ -52,7 +47,7 @@ public class A2AAgentRuntime(string name, AgentDefinition definition, ComponentC
     public virtual async IAsyncEnumerable<AgentResponseContent> ExecuteAsync(TaskRecord task, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(task);
-        var agent = await AgentFactory.CreateAsync(Name, Definition, Components, cancellationToken).ConfigureAwait(false);
+        var agent = await AgentFactory.CreateAsync(Name, Definition, null, cancellationToken).ConfigureAwait(false);
         var invocationOptions = new AgentInvocationOptions()
         {
             ChatId = task.SessionId

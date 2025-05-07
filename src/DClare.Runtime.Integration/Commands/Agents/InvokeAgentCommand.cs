@@ -14,34 +14,28 @@
 namespace DClare.Runtime.Integration.Commands.Agents;
 
 /// <summary>
-/// Represents the command to invoke an AI Agent with a message, optionally within a conversational session
+/// Represents the command to invoke an AI Agent with a message, optionally within a conversational session.
 /// </summary>
+[Description("Represents the command to invoke an AI Agent with a message, optionally within a conversational session.")]
 [DataContract]
 public class InvokeAgentCommand
     : Command<ChatResponseStream>
 {
 
     /// <summary>
-    /// Gets/sets the name of the agent to invoke
+    /// Gets/sets the name of the agent to invoke.
     /// </summary>
-    [Description("The name of the agent to invoke")]
-    [Required, MinLength(1)]
+    [Description("The name of the agent to invoke.")]
+    [Required]
     [DataMember(Name = "agent", Order = 1), JsonPropertyName("agent"), JsonPropertyOrder(1), YamlMember(Alias = "agent", Order = 1)]
-    public virtual string Agent { get; set; } = null!;
+    public virtual required NamespacedResourceReference Agent { get; set; }
 
     /// <summary>
-    /// Gets/sets the input message to process
+    /// Gets/sets the invocation parameters.
     /// </summary>
-    [Description("The input message to process")]
-    [Required, MinLength(1)]
-    [DataMember(Name = "message", Order = 2), JsonPropertyName("message"), JsonPropertyOrder(2), YamlMember(Alias = "message", Order = 2)]
-    public virtual string Message { get; set; } = null!;
-
-    /// <summary>
-    /// Gets/sets the options used to configure the agent's invocation
-    /// </summary>
-    [Description("The options used to configure the agent's invocation")]
-    [DataMember(Name = "options", Order = 3), JsonPropertyName("options"), JsonPropertyOrder(3), YamlMember(Alias = "options", Order = 3)]
-    public virtual AgentInvocationOptions? Options { get; set; }
+    [Description("The invocation parameters.")]
+    [Required,]
+    [DataMember(Name = "parameters", Order = 2), JsonPropertyName("parameters"), JsonPropertyOrder(2), YamlMember(Alias = "parameters", Order = 2)]
+    public virtual required InvokeAgentCommandParameters Parameters { get; set; }
 
 }

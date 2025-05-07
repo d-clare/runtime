@@ -14,19 +14,20 @@
 namespace DClare.Runtime.Integration.Models;
 
 /// <summary>
-/// Represents the result of an agent invocation that produces a stream of output chat messages
+/// Represents the result of an agent invocation that produces a stream of output chat messages.
 /// </summary>
-[DataContract, Description("The result of an agent invocation that produces a stream of output chat messages")]
+[Description("The result of an agent invocation that produces a stream of output chat messages.")]
+[DataContract]
 public record StreamingChatMessageContent
 {
 
     /// <summary>
-    /// Initializes a new <see cref="StreamingChatMessageContent"/>
+    /// Initializes a new <see cref="StreamingChatMessageContent"/>.
     /// </summary>
     public StreamingChatMessageContent() { }
 
     /// <summary>
-    /// Initializes a new <see cref="StreamingChatMessageContent"/>
+    /// Initializes a new <see cref="StreamingChatMessageContent"/>.
     /// </summary>
     /// <param name="content">The content of the streaming message.</param>
     /// <param name="role">The role associated with the message, if any.</param>
@@ -60,4 +61,3 @@ public record StreamingChatMessageContent
     public virtual IReadOnlyDictionary<string, object?>? Metadata { get; set; }
 
 }
-
