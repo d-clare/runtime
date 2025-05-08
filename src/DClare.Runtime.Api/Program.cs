@@ -26,7 +26,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddCache(builder.Configuration);
 builder.Services.AddRedisDatabase(builder.Configuration.GetConnectionString("redis")!);
 builder.Services.AddHostedService<DClare.Runtime.Application.Services.DatabaseInitializer>();
-builder.Services.AddSingleton<IUserAccessor, HttpContextUserAccessor>();
+builder.Services.AddScoped<IUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddScoped<IUserInfoProvider, UserInfoProvider>();
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
 builder.Services.AddScoped<IAdmissionControl, AdmissionControl>();
@@ -40,6 +40,7 @@ builder.Services.AddSingleton<IChatSessionStore, DistributedCacheChatSessionStor
 builder.Services.AddSingleton<IKernelPluginManager, KernelPluginManager>();
 builder.Services.AddTransient<IKernelFactory, KernelFactory>();
 builder.Services.AddTransient<IAgentFactory, AgentFactory>();
+builder.Services.AddTransient<IPromptTemplateRenderer, PromptTemplateRenderer>();
 builder.Services.AddJsonPatchHandler();
 builder.Services.AddJsonMergePatchHandler();
 builder.Services.AddJsonStrategicMergePatchHandler();
@@ -61,6 +62,7 @@ builder.Services.AddControllers(options =>
 {
     JsonSerializer.DefaultOptionsConfiguration(options.JsonSerializerOptions);
 });
+builder.Services.AddMcpServer().WithToolsFromAssembly().WithHttpTransport();
 
 var app = builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -74,5 +76,6 @@ app.MapScalarApiReference("/api/doc", options =>
 });
 app.MapControllers();
 app.MapA2AWellKnownAgentEndpoint();
-app.MapA2AAgentHttpEndpoint();
+app.MapA2AHttpEndpoint();
+app.MapMcp("mcp");
 await app.RunAsync();

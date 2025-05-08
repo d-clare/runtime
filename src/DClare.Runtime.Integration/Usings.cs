@@ -12,8 +12,10 @@
 // limitations under the License.
 
 global using DClare.Runtime.Integration.Models;
+global using DClare.Runtime.Integration.Resources.Definitions;
 global using DClare.Sdk;
 global using Neuroglia;
+global using Neuroglia.Data;
 global using Neuroglia.Data.Infrastructure.ResourceOriented;
 global using Neuroglia.Mediation;
 global using Neuroglia.Serialization.Yaml;
@@ -25,4 +27,3 @@ global using System.Text;
 global using System.Text.Json.Serialization;
 global using YamlDotNet.Core;
 global using YamlDotNet.Serialization;
-global using Neuroglia.Data;

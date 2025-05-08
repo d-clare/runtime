@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Application;
+namespace DClare.Runtime;
 
 /// <summary>
 /// Exposes information about DClare resources.
@@ -31,6 +31,16 @@ public static class DClareResources
         public static ResourceDefinition Agent { get; } = new AgentResourceDefinition();
 
         /// <summary>
+        /// Gets the definition of Embedding Model resources
+        /// </summary>
+        public static ResourceDefinition EmbeddingModel { get; } = new EmbeddingModelResourceDefinition();
+
+        /// <summary>
+        /// Gets the definition of Agent resources
+        /// </summary>
+        public static ResourceDefinition VectorStore { get; } = new VectorStoreResourceDefinition();
+
+        /// <summary>
         /// Gets the definition of Workflow resources
         /// </summary>
         public static ResourceDefinition Workflow { get; } = new WorkflowResourceDefinition();
@@ -47,6 +57,8 @@ public static class DClareResources
         public static IEnumerable<ResourceDefinition> AsEnumerable()
         {
             yield return Agent;
+            yield return EmbeddingModel;
+            yield return VectorStore;
             yield return Workflow;
             yield return WorkflowInstance;
         }

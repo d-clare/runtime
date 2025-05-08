@@ -44,10 +44,10 @@ public static class IServiceCollectionExtensions
             case CacheProvider.Redis:
                 services.AddStackExchangeRedisCache(redis =>
                 {
-                    if (options.Cache.Configuration == null) throw new NullReferenceException($"Configuration must be set when using the specified provider '{options.Cache.Provider}'");
                     var connectionString = configuration.GetConnectionString("redis");
-                    var configurationProperties = new Dictionary<string, object>(options.Cache.Configuration, StringComparer.OrdinalIgnoreCase);
                     redis.Configuration = connectionString;
+                    if (options.Cache.Configuration == null) return;
+                    var configurationProperties = new Dictionary<string, object>(options.Cache.Configuration, StringComparer.OrdinalIgnoreCase);
                     if (configurationProperties.TryGetValue(InstanceNameConfigurationPropertyName, out var value) && value is string instanceName) redis.InstanceName = instanceName;
                 });
                 break;

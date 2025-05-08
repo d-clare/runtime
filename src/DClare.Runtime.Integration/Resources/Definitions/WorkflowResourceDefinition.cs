@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources.Definitions;
 
 /// <summary>
 /// Represents the definition of a <see cref="Workflow"/> <see cref="Resource"/>.
@@ -44,7 +44,7 @@ public record WorkflowResourceDefinition
 
     static WorkflowResourceDefinition()
     {
-        using var stream = typeof(Workflow).Assembly.GetManifestResourceStream($"{typeof(Workflow).Namespace}.{nameof(Workflow)}.yaml")!;
+        using var stream = typeof(WorkflowResourceDefinition).Assembly.GetManifestResourceStream($"{typeof(WorkflowResourceDefinition).Namespace}.{nameof(WorkflowResourceDefinition)}.yaml")!;
         using var streamReader = new StreamReader(stream);
         Instance = YamlSerializer.Default.Deserialize<ResourceDefinition>(streamReader.ReadToEnd())!;
         ResourceGroup = Instance.Spec.Group;

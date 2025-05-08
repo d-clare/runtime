@@ -19,7 +19,7 @@ namespace DClare.Runtime.Integration.Queries.Resources;
 /// <param name="namespace">The namespace the <see cref="IResource"/>s to get belong to, if any.</param>
 /// <param name="labelSelectors">A <see cref="List{T}"/> containing the <see cref="LabelSelector"/>s used to filter <see cref="IResource"/>s by.</param>
 [Description("Represents the query used to get resources.")]
-public class GetResourcesQuery<TResource>(string? @namespace, IEnumerable<LabelSelector>? labelSelectors)
+public class GetResourcesQuery<TResource>(string? @namespace = null, IEnumerable<LabelSelector>? labelSelectors = null)
     : Query<IAsyncEnumerable<TResource>>
     where TResource : class, IResource, new()
 {

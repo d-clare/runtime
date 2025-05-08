@@ -134,7 +134,10 @@ public static class Problems
         /// Gets the type of problems that occur due to unprocessable or invalid data
         /// </summary>
         public static readonly Uri Unprocessable = new(BaseUri, "unprocessable");
-
+        /// <summary>
+        /// Gets the type of problems that occur due to unsupported file content type.
+        /// </summary>
+        public static readonly Uri UnsupportedFileContentType = new(BaseUri, "unsupported-file-content-type");
     }
 
     /// <summary>
@@ -236,6 +239,10 @@ public static class Problems
         /// Gets the title of problems that occur due to unprocessable or invalid data
         /// </summary>
         public const string Unprocessable = "Unprocessable";
+        /// <summary>
+        /// Gets the title of problems that occur due to unsupported file content type
+        /// </summary>
+        public const string UnsupportedFileContentType = "Unsupported File Content Type";
 
     }
 
@@ -368,6 +375,10 @@ public static class Problems
         /// Gets the details of a problem that occurs when attempting to apply an unsupported type of patch
         /// </summary>
         public const string UnsupportedPatchType = "The specified patch type '{type}' is not supported";
+        /// <summary>
+        /// Gets the detail of problems that occur due to unsupported file content type
+        /// </summary>
+        public const string UnsupportedFileContentType = "The specified file content type '{contentType}' is not supported";
 
     }
 
@@ -442,6 +453,13 @@ public static class Problems
     /// <param name="name">The name of the toolset that cannot be found</param>
     /// <returns>A new <see cref="ProblemDetails"/></returns>
     public static ProblemDetails ToolsetNotFound(string name) => new(Types.Toolsets.NotFound, Titles.Toolsets.NotFound, Statuses.NotFound, StringFormatter.Format(Details.Toolsets.NotFound, name));
+
+    /// <summary>
+    /// Creates a new <see cref="ProblemDetails"/> used to describe a problem that occurs when uploading a file that has an unsupported content type.
+    /// </summary>
+    /// <param name="contentType">The unsupported file content type.</param>
+    /// <returns>A new <see cref="ProblemDetails"/></returns>
+    public static ProblemDetails UnsupportedFileContentType(string contentType) => new(Types.UnsupportedFileContentType, Titles.Unprocessable, Statuses.Unprocessable, StringFormatter.Format(Details.UnsupportedFileContentType, contentType));
 
     /// <summary>
     /// Creates a new <see cref="ProblemDetails"/> used to describe a problem that occurs when attempting to apply a patch of unsupported type

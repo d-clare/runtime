@@ -21,6 +21,7 @@ namespace DClare.Runtime.Application;
 /// </summary>
 /// <typeparam name="TKey">The type of the unique key identifying the record.</typeparam>
 public record TextEmbeddingRecord<TKey>
+    : SemanticSearchResult
 {
 
     /// <summary>
@@ -28,36 +29,6 @@ public record TextEmbeddingRecord<TKey>
     /// </summary>
     [VectorStoreRecordKey]
     public virtual required TKey Key { get; set; }
-
-    /// <summary>
-    /// Gets or sets the raw text content to be indexed and embedded.
-    /// </summary>
-    [VectorStoreRecordData]
-    public virtual string? Text { get; set; }
-
-    /// <summary>
-    /// Gets or sets metadata about the source from which the text snippet was extracted, including its identifier, type, position (page or section), and an optional link.
-    /// </summary>
-    [VectorStoreRecordData]
-    public virtual TextEmbeddingRecordReference? Reference { get; set; }
-
-    /// <summary>
-    /// Gets or sets the timestamp indicating when this record was created or indexed.
-    /// </summary>
-    [VectorStoreRecordData]
-    public virtual DateTimeOffset? CreatedAt { get; set; }
-
-    /// <summary>
-    /// Gets or sets a list of tags that categorize or annotate the text snippet.
-    /// </summary>
-    [VectorStoreRecordData]
-    public virtual IReadOnlyList<string>? Tags { get; set; }
-
-    /// <summary>
-    /// Gets or sets additional custom metadata as key-value pairs.
-    /// </summary>
-    [VectorStoreRecordData]
-    public virtual Dictionary<string, string>? Metadata { get; set; }
 
     /// <summary>
     /// Gets or sets the semantic vector embedding representing the content of this text snippet.

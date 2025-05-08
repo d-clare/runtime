@@ -11,26 +11,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources;
 
 /// <summary>
-/// Represents a resource used to describe and configure an AI agent.
+/// Represents a resource used to describe and configure a vector store.
 /// </summary>
-[Description("Represents a resource used to describe and configure an AI agent.")]
-[DataContract]
-public record Agent
-    : Resource<AgentSpec, AgentStatus>
+[Description("Represents a resource used to describe and configure a vector store.")]
+public record VectorStore
+    : Resource<VectorStoreSpec>
 {
 
     /// <summary>
-    /// Gets the <see cref="Agent"/> resource definition.
+    /// Gets the <see cref="VectorStore"/> resource definition.
     /// </summary>
-    public static readonly ResourceDefinitionInfo ResourceDefinition = new AgentResourceDefinition()!;
+    public static readonly ResourceDefinitionInfo ResourceDefinition = new VectorStoreResourceDefinition()!;
 
     /// <inheritdoc/>
-    public Agent() : base(ResourceDefinition) { Status = new(); }
+    public VectorStore() : base(ResourceDefinition) { }
 
     /// <inheritdoc/>
-    public Agent(ResourceMetadata metadata, AgentSpec spec) : base(ResourceDefinition, metadata, spec, new()) { }
+    public VectorStore(ResourceMetadata metadata, VectorStoreSpec spec) : base(ResourceDefinition, metadata, spec) { }
 
 }

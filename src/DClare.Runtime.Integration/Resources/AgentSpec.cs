@@ -11,26 +11,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+using DClare.Sdk.Models;
+
+namespace DClare.Runtime.Integration.Resources;
 
 /// <summary>
-/// Represents a resource used to describe and configure a workflow.
+/// Represents the specification of an AI agent.
 /// </summary>
-[Description("Represents a resource used to describe and configure a workflow.")]
+[Description("Represents the specification of an AI agent.")]
 [DataContract]
-public record Workflow
-    : Resource<WorkflowSpec, WorkflowStatus>
+public record AgentSpec
 {
 
     /// <summary>
-    /// Gets the <see cref="Workflow"/> resource definition.
+    /// Gets or sets the agent's definition.
     /// </summary>
-    public static readonly ResourceDefinitionInfo ResourceDefinition = new WorkflowResourceDefinition()!;
-
-    /// <inheritdoc/>
-    public Workflow() : base(ResourceDefinition) { Status = new(); }
-
-    /// <inheritdoc/>
-    public Workflow(ResourceMetadata metadata, WorkflowSpec spec) : base(ResourceDefinition, metadata, spec, new()) { }
+    [Description("The agent's definition.")]
+    [Required]
+    [DataMember(Name = "definition", Order = 1), JsonPropertyName("definition"), JsonPropertyOrder(1), YamlMember(Alias = "definition", Order = 1)]
+    public virtual AgentDefinition Definition { get; set; } = null!;
 
 }

@@ -236,7 +236,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IComponentDefinitionRes
         ArgumentNullException.ThrowIfNull(definition);
         var vectorStore = definition;
         if (!string.IsNullOrWhiteSpace(vectorStore.Use)) vectorStore = await ComponentDefinitionResolver.ResolveAsync<VectorStoreDefinition>(vectorStore.Use, context, cancellationToken).ConfigureAwait(false);
-        var collection = vectorStore.Provider.Configuration?.TryGetValue("authentication", out var configurationValue) == true && configurationValue != null ? JsonSerializer.Convert<string>(configurationValue) : null;
+        var collection = vectorStore.Provider.Configuration?.TryGetValue("collection", out var configurationValue) == true && configurationValue != null ? JsonSerializer.Convert<string>(configurationValue) : null;
         var authentication = vectorStore.Provider.Configuration?.TryGetValue("authentication", out configurationValue) == true && configurationValue != null ? JsonSerializer.Convert<AuthenticationPolicyDefinition>(configurationValue) : null;
         var apiKey = authentication?.Scheme switch
         {

@@ -11,31 +11,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Commands.Agents;
+namespace DClare.Runtime.Integration.Commands.VectorStores;
 
 /// <summary>
-/// Represents the command to invoke an AI Agent with a message, optionally within a conversational session.
+/// Represents the command used to search a vector store.
 /// </summary>
-[Description("Represents the command to invoke an AI Agent with a message, optionally within a conversational session.")]
+[Description("Represents the command used to search a vector store.")]
 [DataContract]
-public class InvokeAgentCommand
-    : Command<ChatResponseStream>
+public class SearchTextCommand
+    : Command<IAsyncEnumerable<SemanticSearchResult>>
 {
 
     /// <summary>
-    /// Gets/sets a reference to the agent to invoke.
+    /// Gets/sets a reference to the vector store to invoke.
     /// </summary>
-    [Description("A reference to the agent to invoke.")]
+    [Description("A reference to the vector store to invoke.")]
     [Required]
-    [DataMember(Name = "agent", Order = 1), JsonPropertyName("agent"), JsonPropertyOrder(1), YamlMember(Alias = "agent", Order = 1)]
-    public virtual required NamespacedResourceReference Agent { get; set; }
+    [DataMember(Name = "vectorStore", Order = 1), JsonPropertyName("vectorStore"), JsonPropertyOrder(1), YamlMember(Alias = "vectorStore", Order = 1)]
+    public virtual required NamespacedResourceReference VectorStore { get; set; }
 
     /// <summary>
-    /// Gets/sets the invocation parameters.
+    /// Gets/sets the parameters used to configure the search to perform.
     /// </summary>
-    [Description("The invocation parameters.")]
-    [Required,]
+    [Description("The parameters used to configure the search to perform.")]
+    [Required]
     [DataMember(Name = "parameters", Order = 2), JsonPropertyName("parameters"), JsonPropertyOrder(2), YamlMember(Alias = "parameters", Order = 2)]
-    public virtual required InvokeAgentCommandParameters Parameters { get; set; }
+    public virtual required SearchTextCommandParameters Parameters { get; set; }
 
 }

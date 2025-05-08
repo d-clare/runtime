@@ -30,11 +30,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Models\Agent.yaml" />
-    <EmbeddedResource Include="Models\Workflow.yaml">
+    <EmbeddedResource Include="Resources\Definitions\AgentResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\EmbeddingModelResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\VectorStoreResourceDefinition.yaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Models\WorkflowInstance.yaml">
+    <EmbeddedResource Include="Resources\Definitions\WorkflowResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\WorkflowInstanceResourceDefinition.yaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -48,6 +50,8 @@
 
   <ItemGroup>
 	<PackageReference Include="DClare.Sdk" Version="0.4.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.3.0" />
+	<PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" Version="9.0.0-preview.1.25229.1" />
 	<PackageReference Include="Neuroglia.Data.Infrastructure.ResourceOriented" Version="4.21.0" />
 	<PackageReference Include="Neuroglia.Data.PatchModel" Version="4.21.0" />
 	<PackageReference Include="Neuroglia.Mediation" Version="4.21.0" />

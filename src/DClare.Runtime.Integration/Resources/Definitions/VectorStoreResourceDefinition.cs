@@ -11,13 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources.Definitions;
 
 /// <summary>
-/// Represents the definition of a <see cref="WorkflowInstance"/> <see cref="Resource"/>.
+/// Represents the definition of a <see cref="VectorStore"/> <see cref="Resource"/>.
 /// </summary>
 [DataContract]
-public record WorkflowInstanceResourceDefinition
+public record VectorStoreResourceDefinition
     : ResourceDefinition
 {
 
@@ -42,9 +42,9 @@ public record WorkflowInstanceResourceDefinition
     /// </summary>
     public static new string ResourceKind { get; set; }
 
-    static WorkflowInstanceResourceDefinition()
+    static VectorStoreResourceDefinition()
     {
-        using var stream = typeof(WorkflowInstance).Assembly.GetManifestResourceStream($"{typeof(WorkflowInstance).Namespace}.{nameof(WorkflowInstance)}.yaml")!;
+        using var stream = typeof(VectorStoreResourceDefinition).Assembly.GetManifestResourceStream($"{typeof(VectorStoreResourceDefinition).Namespace}.{nameof(VectorStoreResourceDefinition)}.yaml")!;
         using var streamReader = new StreamReader(stream);
         Instance = YamlSerializer.Default.Deserialize<ResourceDefinition>(streamReader.ReadToEnd())!;
         ResourceGroup = Instance.Spec.Group;
@@ -54,8 +54,8 @@ public record WorkflowInstanceResourceDefinition
     }
 
     /// <summary>
-    /// Initializes a new <see cref="WorkflowInstanceResourceDefinition"/>
+    /// Initializes a new <see cref="AgentResourceDefinition"/>
     /// </summary>
-    public WorkflowInstanceResourceDefinition() : base(Instance) { }
+    public VectorStoreResourceDefinition() : base(Instance) { }
 
 }

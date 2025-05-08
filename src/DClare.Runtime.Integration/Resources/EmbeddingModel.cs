@@ -11,24 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using DClare.Sdk.Models;
-
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources;
 
 /// <summary>
-/// Represents the specification of a workflow, including its versioned definitions.
+/// Represents a resource used to describe and configure an embedding model.
 /// </summary>
-[Description("Represents the specification of a workflow, including its versioned definitions.")]
+[Description("Represents a resource used to describe and configure an embedding model.")]
 [DataContract]
-public record WorkflowSpec
+public record EmbeddingModel
+    : Resource<EmbeddingModelSpec>
 {
 
     /// <summary>
-    /// Gets or sets a collection of available workflow definition versions.
+    /// Gets the <see cref="EmbeddingModel"/> resource definition.
     /// </summary>
-    [Description("A collection of available workflow definition versions.")]
-    [Required, MinLength(1)]
-    [DataMember(Name = "versions", Order = 1), JsonPropertyName("versions"), JsonPropertyOrder(1), YamlMember(Alias = "versions", Order = 1)]
-    public virtual EquatableList<WorkflowDefinition> Versions { get; set; } = [];
+    public static readonly ResourceDefinitionInfo ResourceDefinition = new EmbeddingModelResourceDefinition()!;
+
+    /// <inheritdoc/>
+    public EmbeddingModel() : base(ResourceDefinition) { }
+
+    /// <inheritdoc/>
+    public EmbeddingModel(ResourceMetadata metadata, EmbeddingModelSpec spec) : base(ResourceDefinition, metadata, spec) { }
 
 }

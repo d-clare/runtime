@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources;
 
 /// <summary>
 /// Represents the current status of an AI agent.

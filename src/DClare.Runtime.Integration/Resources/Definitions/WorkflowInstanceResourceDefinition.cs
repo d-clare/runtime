@@ -11,13 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources.Definitions;
 
 /// <summary>
-/// Represents the definition of an <see cref="Agent"/> <see cref="Resource"/>.
+/// Represents the definition of a <see cref="WorkflowInstance"/> <see cref="Resource"/>.
 /// </summary>
 [DataContract]
-public record AgentResourceDefinition
+public record WorkflowInstanceResourceDefinition
     : ResourceDefinition
 {
 
@@ -42,9 +42,9 @@ public record AgentResourceDefinition
     /// </summary>
     public static new string ResourceKind { get; set; }
 
-    static AgentResourceDefinition()
+    static WorkflowInstanceResourceDefinition()
     {
-        using var stream = typeof(Workflow).Assembly.GetManifestResourceStream($"{typeof(Agent).Namespace}.{nameof(Agent)}.yaml")!;
+        using var stream = typeof(WorkflowInstanceResourceDefinition).Assembly.GetManifestResourceStream($"{typeof(WorkflowInstanceResourceDefinition).Namespace}.{nameof(WorkflowInstanceResourceDefinition)}.yaml")!;
         using var streamReader = new StreamReader(stream);
         Instance = YamlSerializer.Default.Deserialize<ResourceDefinition>(streamReader.ReadToEnd())!;
         ResourceGroup = Instance.Spec.Group;
@@ -54,8 +54,8 @@ public record AgentResourceDefinition
     }
 
     /// <summary>
-    /// Initializes a new <see cref="AgentResourceDefinition"/>
+    /// Initializes a new <see cref="WorkflowInstanceResourceDefinition"/>
     /// </summary>
-    public AgentResourceDefinition() : base(Instance) { }
+    public WorkflowInstanceResourceDefinition() : base(Instance) { }
 
 }

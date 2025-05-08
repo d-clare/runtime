@@ -11,24 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using DClare.Sdk.Models;
-
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources;
 
 /// <summary>
-/// Represents the specification of an AI agent.
+/// Represents a resource used to describe and configure an AI agent.
 /// </summary>
-[Description("Represents the specification of an AI agent.")]
+[Description("Represents a resource used to describe and configure an AI agent.")]
 [DataContract]
-public record AgentSpec
+public record Agent
+    : Resource<AgentSpec, AgentStatus>
 {
 
     /// <summary>
-    /// Gets or sets the agent's definition.
+    /// Gets the <see cref="Agent"/> resource definition.
     /// </summary>
-    [Description("The agent's definition.")]
-    [Required]
-    [DataMember(Name = "definition", Order = 1), JsonPropertyName("definition"), JsonPropertyOrder(1), YamlMember(Alias = "definition", Order = 1)]
-    public virtual AgentDefinition Definition { get; set; } = null!;
+    public static readonly ResourceDefinitionInfo ResourceDefinition = new AgentResourceDefinition()!;
+
+    /// <inheritdoc/>
+    public Agent() : base(ResourceDefinition) { Status = new(); }
+
+    /// <inheritdoc/>
+    public Agent(ResourceMetadata metadata, AgentSpec spec) : base(ResourceDefinition, metadata, spec, new()) { }
 
 }

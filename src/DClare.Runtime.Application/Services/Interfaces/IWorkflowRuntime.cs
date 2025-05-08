@@ -11,6 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using DClare.Runtime.Integration.Resources;
+
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>

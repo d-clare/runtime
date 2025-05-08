@@ -55,8 +55,18 @@ public class ComponentDefinitionResolver(IResourceRepository resources)
         var componentType = typeof(TComponent);
         if (componentType == typeof(AgentDefinition))
         {
-            var agent = await Resources.GetAsync<Agent>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));
-            return (agent.Spec.Definition as TComponent)!;
+            var resource = await Resources.GetAsync<Agent>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));
+            return (resource.Spec.Definition as TComponent)!;
+        }
+        else if (componentType == typeof(EmbeddingModelDefinition))
+        {
+            var resource = await Resources.GetAsync<EmbeddingModel>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));
+            return (resource.Spec.Definition as TComponent)!;
+        }
+        else if (componentType == typeof(VectorStoreDefinition))
+        {
+            var resource = await Resources.GetAsync<VectorStore>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));
+            return (resource.Spec.Definition as TComponent)!;
         }
         else throw new NotSupportedException($"The specified component type '{componentType.Name}' is not supported in this context");
     }

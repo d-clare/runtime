@@ -11,21 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace DClare.Runtime.Integration.Models;
+namespace DClare.Runtime.Integration.Resources;
 
 /// <summary>
-/// Represents the current execution status of a workflow, including status information by version.
+/// Represents a resource used to describe and configure a workflow.
 /// </summary>
-[Description("Represents the current execution status of a workflow, including status information by version.")]
+[Description("Represents a resource used to describe and configure a workflow.")]
 [DataContract]
-public record WorkflowStatus
+public record Workflow
+    : Resource<WorkflowSpec, WorkflowStatus>
 {
 
     /// <summary>
-    /// Gets or sets the version-specific execution status for this workflow.
+    /// Gets the <see cref="Workflow"/> resource definition.
     /// </summary>
-    [Description("The version-specific execution status for this workflow.")]
-    [DataMember(Order = 1, Name = "versions"), JsonPropertyOrder(1), JsonPropertyName("versions"), YamlMember(Order = 1, Alias = "versions")]
-    public virtual EquatableDictionary<string, WorkflowVersionStatus> Versions { get; set; } = [];
+    public static readonly ResourceDefinitionInfo ResourceDefinition = new WorkflowResourceDefinition()!;
+
+    /// <inheritdoc/>
+    public Workflow() : base(ResourceDefinition) { Status = new(); }
+
+    /// <inheritdoc/>
+    public Workflow(ResourceMetadata metadata, WorkflowSpec spec) : base(ResourceDefinition, metadata, spec, new()) { }
 
 }
