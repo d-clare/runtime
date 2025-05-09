@@ -12,7 +12,6 @@
 // limitations under the License.
 
 using Microsoft.SemanticKernel.Agents;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DClare.Runtime.Application;
 
