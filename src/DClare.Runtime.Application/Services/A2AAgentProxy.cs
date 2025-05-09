@@ -58,30 +58,29 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
     protected IA2AProtocolClient Client { get; } = client;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(Integration.Models.Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
         var stream = await InvokeStreamingAsync(message, options, cancellationToken).ConfigureAwait(false);
         return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseFragmentStream> InvokeStreamingAsync(Integration.Models.Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        ArgumentNullException.ThrowIfNull(message);
         var requestParameters = new TaskSendParameters()
         {
             SessionId = options?.SessionId,
             Message = new()
             {
                 Role = MessageRole.User,
-                Parts =
-                [
-                    new TextPart(message)
-                ]
+                Parts = [.. message.Parts.Select(p => p.ToA2APart())],
+                Metadata = message.Metadata == null ? null : new(message.Metadata!)
             }
         };
         var responseId = Guid.NewGuid().ToString("N");
-        IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> stream;
+        IAsyncEnumerable<MessageFragment> stream;
         if (Manifest.Capabilities.Streaming)
         {
             var request = new SendTaskStreamingRequest()
@@ -93,8 +92,8 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
                 .TakeWhile(e => e.Result is not TaskStatusUpdateEvent status || !status.Final)
                 .SelectMany(e =>
                 {
-                    if (e.Result is TaskArtifactUpdateEvent artifactUpdate) return artifactUpdate.Artifact.ToStreamingChatMessageContents().ToAsyncEnumerable();
-                    else return Enumerable.Empty<Integration.Models.StreamingChatMessageContent>().ToAsyncEnumerable();
+                    if (e.Result is TaskArtifactUpdateEvent artifactUpdate) return new MessageFragment[] { artifactUpdate.Artifact.ToMessageFragment() }.ToAsyncEnumerable();
+                    else return Enumerable.Empty<MessageFragment>().ToAsyncEnumerable();
                 });
         }
         else
@@ -107,7 +106,7 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
             var response = await Client.SendTaskAsync(request, cancellationToken).ConfigureAwait(false);
             if (response.Error != null) throw new ProblemDetailsException(Problems.AgentCommunicationError(Name, $"[{response.Error.Code}] {response.Error.Message}"));
             if (response.Result == null) throw new ProblemDetailsException(Problems.AgentCommunicationError(Name, $"No result was returned by the remote agent"));
-            var contents = response.Result.Artifacts?.SelectMany(a => a.ToStreamingChatMessageContents()) ?? [];
+            var contents = response.Result.Artifacts?.Select(a => a.ToMessageFragment()) ?? [];
             stream = contents.ToAsyncEnumerable();
         }
         return new(responseId, stream);

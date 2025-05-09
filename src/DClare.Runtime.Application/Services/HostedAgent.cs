@@ -74,45 +74,45 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
     protected IJsonSerializer JsonSerializer { get; } = jsonSerializer;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
         var stream = await InvokeStreamingAsync(message, options, cancellationToken).ConfigureAwait(false);
         return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseFragmentStream> InvokeStreamingAsync(Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        ArgumentNullException.ThrowIfNull(message);
         if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
         var chat = string.IsNullOrWhiteSpace(options?.ChatId) ? null : await ChatSessionManager.GetAsync(options.ChatId, options.UserId!, Name, cancellationToken).ConfigureAwait(false);
         var responseId = Guid.NewGuid().ToString("N");
         var stream = StreamResponseAsync(message, chat, options, cancellationToken);
-        return new ChatResponseStream(responseId, stream);
+        return new ChatResponseFragmentStream(responseId, stream);
     }
 
     /// <summary>
     /// Streams the response of the agent by sending the user's message and existing chat history to the configured chat completion service.
     /// </summary>
-    /// <param name="userMessage">The user's input message to send to the agent.</param>
+    /// <param name="message">The user's input message to send to the agent.</param>
     /// <param name="chat">The current chat, if any.</param>
     /// <param name="options">The options used to configure the agent's invocation.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>An asynchronous stream of <see cref="Integration.Models.StreamingChatMessageContent"/> values representing the streamed response.</returns>
-    protected virtual async IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> StreamResponseAsync(string userMessage, ChatSession? chat, AgentInvocationOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    /// <returns>An asynchronous stream of <see cref="MessageFragment"/> values representing the streamed response.</returns>
+    protected virtual async IAsyncEnumerable<MessageFragment> StreamResponseAsync(Message message, ChatSession? chat, AgentInvocationOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(userMessage);
+        ArgumentNullException.ThrowIfNull(message);
         if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
-        var chatHistory = chat == null ? null : new ChatHistory(chat.Messages.Select(m => new ChatMessageContent(new(m.Role), m.Content, metadata: m.Metadata)));
+        var chatHistory = chat?.ToChatHistory();
         var instructions = Definition.Instructions.T1Value == null 
             ? Definition.Instructions.T2Value 
             : await PromptTemplateRenderer.RenderAsync(Definition.Instructions.T1Value, Kernel, new Dictionary<string, object>() 
             { 
-                { "prompt", userMessage }, 
+                { "prompt", message }, 
                 { "chatHistory", chat! } 
             }, ComponentResolutionContext, cancellationToken).ConfigureAwait(false);
         chatHistory ??= string.IsNullOrWhiteSpace(instructions) ? new() : new(instructions);
-        chatHistory.AddUserMessage(userMessage);
+        chatHistory.Add(message.ToChatMessageContent());
         var answerBuilder = new StringBuilder();
         var promptSettings = Kernel.Services.GetRequiredService<PromptExecutionSettings>();
         if (options?.Parameters != null)
@@ -120,17 +120,32 @@ public class HostedAgent(string name, HostedAgentDefinition definition, Kernel k
             promptSettings.ExtensionData ??= new Dictionary<string, object>();
             foreach (var parameter in options.Parameters) promptSettings.ExtensionData[parameter.Key] = parameter.Value;
         }
-        await foreach (var message in ChatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, promptSettings, Kernel, cancellationToken).ConfigureAwait(false))
+        await foreach (var fragment in ChatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, promptSettings, Kernel, cancellationToken).ConfigureAwait(false))
         {
-            answerBuilder.Append(message.Content);
-            var chatMessage = new Integration.Models.StreamingChatMessageContent(message.Content, message.Role?.Label, message.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-            yield return chatMessage;
+            answerBuilder.Append(fragment.Content);
+            var x = new MessageFragment
+            {
+                Role = fragment.Role?.Label,
+                Parts = [.. fragment.Items.Select(p => p.ToMessageFragmentPart())],
+                Metadata = fragment.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+            };
+            yield return new MessageFragment
+            {
+                Role = fragment.Role?.Label,
+                Parts = [.. fragment.Items.Select(p => p.ToMessageFragmentPart())],
+                Metadata = fragment.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+            };
         }
         var answer = answerBuilder.ToString();
         chatHistory.AddAssistantMessage(answer);
         if (!string.IsNullOrWhiteSpace(options?.ChatId))
         {
-            var messages = chatHistory.Select(m => new ChatMessage(m.Role == AuthorRole.Tool ? AuthorRole.Assistant.Label : m.Role.Label, m.Content, m.Metadata));
+            var messages = chatHistory.Select(m => new Message()
+            {
+                Role = m.Role == AuthorRole.Tool ? AuthorRole.Assistant.Label : m.Role.Label,
+                Parts = [.. m.Items.Select(c => c.ToMessagePart())],
+                Metadata = m.Metadata
+            });
             chat ??= new(options.ChatId, options.UserId!, Name, null, messages);
             chat.Messages = messages;
             await ChatSessionManager.AddOrUpdateAsync(chat, cancellationToken).ConfigureAwait(false);

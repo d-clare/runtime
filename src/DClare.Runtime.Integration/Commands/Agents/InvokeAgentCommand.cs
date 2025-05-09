@@ -19,7 +19,7 @@ namespace DClare.Runtime.Integration.Commands.Agents;
 [Description("Represents the command to invoke an AI Agent with a message, optionally within a conversational session.")]
 [DataContract]
 public class InvokeAgentCommand
-    : Command<ChatResponseStream>
+    : Command<ChatResponseFragmentStream>
 {
 
     /// <summary>

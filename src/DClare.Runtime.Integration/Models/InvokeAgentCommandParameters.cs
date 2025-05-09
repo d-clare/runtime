@@ -25,9 +25,9 @@ public record InvokeAgentCommandParameters
     /// Gets/sets the input message to process.
     /// </summary>
     [Description("The input message to process")]
-    [Required, MinLength(1)]
+    [Required]
     [DataMember(Name = "message", Order = 1), JsonPropertyName("message"), JsonPropertyOrder(1), YamlMember(Alias = "message", Order = 1)]
-    public virtual string Message { get; set; } = null!;
+    public virtual OneOf<Message, string> Message { get; set; } = null!;
 
     /// <summary>
     /// Gets/sets the options used to configure the agent's invocation.

@@ -11,25 +11,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using A2A;
+using Microsoft.SemanticKernel.ChatCompletion;
+
 namespace DClare.Runtime.Application;
 
 /// <summary>
-/// Defines extensions for <see cref="Message"/>s.
+/// Defines extensions for <see cref="A2A.Models.Message"/>s
 /// </summary>
-public static class MessageExtensions
+public static class A2AMessageExtensions
 {
 
     /// <summary>
-    /// Converts the <see cref="Message"/> into a new <see cref="ChatMessageContent"/>.
+    /// Converts the <see cref="A2A.Models.Message"/> into a new <see cref="Message"/>.
     /// </summary>
-    /// <param name="message">The <see cref="Message"/> to convert.</param>
-    /// <returns>A new <see cref="ChatMessageContent"/>.</returns>
-    public static ChatMessageContent ToChatMessageContent(this Message message) => new()
+    /// <param name="message">The <see cref="A2A.Models.Message"/> to convert.</param>
+    /// <returns>A new <see cref="Message"/>.</returns>
+    public static Message ToMessage(this A2A.Models.Message message) => new()
     {
-        Role = new (message.Role),
-        AuthorName = message.Author,
-        Items = [.. message.Parts.Select(p => p.ToKernelContent())],
-        Metadata = message.Metadata
+        Role = message.Role == MessageRole.Agent ? AuthorRole.Assistant.Label : message.Role,
+        Parts = [.. message.Parts == null ? [] : message.Parts.Select(p => p.ToMessagePart())],
+        Metadata = message.Metadata?.AsReadOnly()!
     };
 
 }

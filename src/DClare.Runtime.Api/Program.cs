@@ -41,6 +41,7 @@ builder.Services.AddSingleton<IKernelPluginManager, KernelPluginManager>();
 builder.Services.AddTransient<IKernelFactory, KernelFactory>();
 builder.Services.AddTransient<IAgentFactory, AgentFactory>();
 builder.Services.AddTransient<IPromptTemplateRenderer, PromptTemplateRenderer>();
+builder.Services.AddTransient<IContentEmbedder, ContentEmbedder>();
 builder.Services.AddJsonPatchHandler();
 builder.Services.AddJsonMergePatchHandler();
 builder.Services.AddJsonStrategicMergePatchHandler();

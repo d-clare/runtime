@@ -12,6 +12,7 @@
 // limitations under the License.
 
 using DClare.Runtime.Integration.Commands.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace DClare.Runtime.Application.Commands.Agents;
 
@@ -23,11 +24,11 @@ namespace DClare.Runtime.Application.Commands.Agents;
 /// <param name="agentFactory">The service used to create <see cref="IAgent"/>s.</param>
 /// <param name="userAccessor">The service used to access the current user.</param>
 public class InvokeAgentCommandHandler(ILogger<InvokeAgentCommandHandler> logger, IComponentDefinitionResolver componentDefinitionResolver, IAgentFactory agentFactory, IUserAccessor userAccessor)
-    : ICommandHandler<InvokeAgentCommand, ChatResponseStream>
+    : ICommandHandler<InvokeAgentCommand, ChatResponseFragmentStream>
 {
 
     /// <inheritdoc/>
-    public async Task<IOperationResult<ChatResponseStream>> HandleAsync(InvokeAgentCommand command, CancellationToken cancellationToken = default)
+    public async Task<IOperationResult<ChatResponseFragmentStream>> HandleAsync(InvokeAgentCommand command, CancellationToken cancellationToken = default)
     {
         var agentDefinition = await componentDefinitionResolver.ResolveAsync<AgentDefinition>(command.Agent.GetQualifiedName(), null, cancellationToken).ConfigureAwait(false);
         var agent = await agentFactory.CreateAsync(command.Agent.Name, agentDefinition, null, cancellationToken).ConfigureAwait(false);
@@ -45,7 +46,12 @@ public class InvokeAgentCommandHandler(ILogger<InvokeAgentCommandHandler> logger
                 ChatId = null
             };
         }
-        var response = await agent.InvokeStreamingAsync(command.Parameters.Message, invocationOptions, cancellationToken).ConfigureAwait(false);
+        var message = command.Parameters.Message.T1Value != null ? command.Parameters.Message.T1Value : new()
+        {
+            Role = AuthorRole.User.Label,
+            Content = command.Parameters.Message.T2Value
+        };
+        var response = await agent.InvokeStreamingAsync(message, invocationOptions, cancellationToken).ConfigureAwait(false);
         return this.Ok(response);
     }
 

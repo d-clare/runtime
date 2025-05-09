@@ -351,7 +351,7 @@ public class AgentsController(IMediator mediator, IJsonSerializer jsonSerializer
     /// <returns>A new <see cref="IActionResult"/> that describes the result of the operation</returns>
     [HttpPost("{namespace}/{name}/invoke/stream", Name = "Invoke Agent (Streamed)")]
     [EndpointDescription("Invokes the specified AI agent using the provided input message and options, processes the interaction, and returns a streamed result")]
-    [ProducesResponseType(typeof(IEnumerable<StreamingChatMessageContent>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(IEnumerable<MessageFragment>), (int)HttpStatusCode.OK)]
     public async Task InvokeAgentStreamAsync([Description("The namespace the agent to invoke belongs to.")] string @namespace, [Description("The name of the agent to invoke.")] string name, [FromBody, Description("The invocation parameters.")] InvokeAgentCommandParameters parameters, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)

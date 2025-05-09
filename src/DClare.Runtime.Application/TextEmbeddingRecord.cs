@@ -19,9 +19,26 @@ namespace DClare.Runtime.Application;
 /// Represents a text snippet enriched with a vector embedding and metadata, including reference context
 /// for semantic search and traceability. Typically used in vector stores to enable retrieval-augmented reasoning.
 /// </summary>
+public record TextEmbeddingRecord
+    : SemanticSearchResult
+{
+
+    /// <summary>
+    /// Gets or sets the semantic vector embedding representing the content of this text snippet.
+    /// </summary>
+    [VectorStoreRecordVector(1536)]
+    public virtual ReadOnlyMemory<float> TextEmbedding { get; set; }
+
+}
+
+
+/// <summary>
+/// Represents a text snippet enriched with a vector embedding and metadata, including reference context
+/// for semantic search and traceability. Typically used in vector stores to enable retrieval-augmented reasoning.
+/// </summary>
 /// <typeparam name="TKey">The type of the unique key identifying the record.</typeparam>
 public record TextEmbeddingRecord<TKey>
-    : SemanticSearchResult
+    : TextEmbeddingRecord
 {
 
     /// <summary>
@@ -29,11 +46,5 @@ public record TextEmbeddingRecord<TKey>
     /// </summary>
     [VectorStoreRecordKey]
     public virtual required TKey Key { get; set; }
-
-    /// <summary>
-    /// Gets or sets the semantic vector embedding representing the content of this text snippet.
-    /// </summary>
-    [VectorStoreRecordVector(1536)]
-    public virtual ReadOnlyMemory<float> TextEmbedding { get; set; }
 
 }

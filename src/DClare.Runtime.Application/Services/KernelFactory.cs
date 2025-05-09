@@ -251,6 +251,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IComponentDefinitionRes
                 if (string.IsNullOrWhiteSpace(collection)) throw new NullReferenceException($"The '{nameof(collection)}' configuration property must be set when using the '{VectorStoreProvider.Pinecone}' vector store provider");
                 apiKey = EnsureApiKeyIsResolved(apiKey);
                 kernelBuilder.AddPineconeVectorStoreRecordCollection<TextEmbeddingRecord<Guid>>(collection, apiKey);
+                kernelBuilder.Services.AddTransient<IVectorStoreRecordCollection, VectorStoreRecordCollection<Guid>>();
                 break;
             case VectorStoreProvider.Qdrant:
                 if (string.IsNullOrWhiteSpace(collection)) throw new NullReferenceException($"The '{nameof(collection)}' configuration property must be set when using the '{VectorStoreProvider.Qdrant}' vector store provider");
@@ -259,12 +260,14 @@ public class KernelFactory(ILoggerFactory loggerFactory, IComponentDefinitionRes
                 var port = vectorStore.Provider.Configuration?.TryGetValue("port", out configurationValue) == true && configurationValue != null ? JsonSerializer.Convert<int>(configurationValue) : 6334;
                 var https = vectorStore.Provider.Configuration?.TryGetValue("https", out configurationValue) == true && configurationValue != null && JsonSerializer.Convert<bool>(configurationValue);
                 kernelBuilder.AddQdrantVectorStoreRecordCollection<Guid, TextEmbeddingRecord<Guid>>(collection, host, port, https, apiKey);
+                kernelBuilder.Services.AddTransient<IVectorStoreRecordCollection, VectorStoreRecordCollection<Guid>>();
                 break;
             case VectorStoreProvider.Redis:
                 if (string.IsNullOrWhiteSpace(collection)) throw new NullReferenceException($"The '{nameof(collection)}' configuration property must be set when using the '{VectorStoreProvider.Redis}' vector store provider");
                 var connectionString = vectorStore.Provider.Configuration?.TryGetValue("connectionString", out configurationValue) == true && configurationValue != null ? JsonSerializer.Convert<string>(configurationValue) : null;
                 if (string.IsNullOrWhiteSpace(connectionString)) throw new NullReferenceException($"The '{nameof(connectionString)}' configuration property must be set when using the '{VectorStoreProvider.Redis}' vector store provider");
                 kernelBuilder.AddRedisJsonVectorStoreRecordCollection<TextEmbeddingRecord<string>>(collection, connectionString);
+                kernelBuilder.Services.AddTransient<IVectorStoreRecordCollection, VectorStoreRecordCollection<string>>();
                 break;
             case VectorStoreProvider.Weaviate:
                 if (string.IsNullOrWhiteSpace(collection)) throw new NullReferenceException($"The '{nameof(collection)}' configuration property must be set when using the '{VectorStoreProvider.Weaviate}' vector store provider");
@@ -274,6 +277,7 @@ public class KernelFactory(ILoggerFactory loggerFactory, IComponentDefinitionRes
                     Endpoint = endpoint,
                     ApiKey = apiKey
                 });
+                kernelBuilder.Services.AddTransient<IVectorStoreRecordCollection, VectorStoreRecordCollection<Guid>>();
                 break;
             default:
                 throw new NotSupportedException($"The specified vector store provider '{vectorStore.Provider.Name}' is not supported");

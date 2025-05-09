@@ -34,7 +34,7 @@ public record ChatSession
     /// <param name="agentName">The name of the agent involved in the <see cref="ChatSession"/> session.</param>
     /// <param name="name">An optional display name for the <see cref="ChatSession"/>.</param>
     /// <param name="messages">The collection of messages exchanged during the <see cref="ChatSession"/>.</param>
-    public ChatSession(string id, string userId, string agentName, string? name, IEnumerable<ChatMessage> messages)
+    public ChatSession(string id, string userId, string agentName, string? name, IEnumerable<Message> messages)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
@@ -91,7 +91,7 @@ public record ChatSession
     /// </summary>
     [Description("The collection of messages exchanged during the chat session.")]
     [DataMember(Name = "messages", Order = 6), JsonPropertyName("messages"), JsonPropertyOrder(6), YamlMember(Alias = "messages", Order = 6)]
-    public virtual IEnumerable<ChatMessage> Messages { get; set; } = [];
+    public virtual IEnumerable<Message> Messages { get; set; } = [];
 
     /// <summary>
     /// Builds a new <see cref="ChatSession"/> key

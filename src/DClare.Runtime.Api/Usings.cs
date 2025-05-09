@@ -19,6 +19,7 @@ global using DClare.Runtime.Application.Services;
 global using DClare.Runtime.Infrastructure.Services;
 global using DClare.Runtime.Integration.Models;
 global using DClare.Runtime.Integration.Resources;
+global using DClare.Runtime.Integration.Serialization.Json;
 global using DClare.Sdk;
 global using Microsoft.AspNetCore.HttpOverrides;
 global using Microsoft.AspNetCore.Mvc;

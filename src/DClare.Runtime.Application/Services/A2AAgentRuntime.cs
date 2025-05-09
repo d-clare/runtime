@@ -52,7 +52,7 @@ public class A2AAgentRuntime(string name, AgentDefinition definition, IAgentFact
         {
             ChatId = task.SessionId
         };
-        var response = await agent.InvokeAsync(task.Message.ToText()!, invocationOptions, cancellationToken).ConfigureAwait(false);
+        var response = await agent.InvokeAsync(task.Message.ToMessage(), invocationOptions, cancellationToken).ConfigureAwait(false);
         var messages = response.Messages.ToList();
         for (int i = 0; i < messages.Count; i++)
         {
@@ -63,7 +63,7 @@ public class A2AAgentRuntime(string name, AgentDefinition definition, IAgentFact
                 Index = (uint)i,
                 Parts =
                 [
-                    new TextPart(message.Content!)
+                    new A2A.Models.TextPart(message.Content!)
                 ],
                 Append = !last,
                 LastChunk = last,

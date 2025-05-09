@@ -13,5 +13,4 @@
 
 global using DClare.Runtime.Integration.Models;
 global using DClare.Sdk.Models;
-global using Microsoft.SemanticKernel;
 global using Neuroglia;

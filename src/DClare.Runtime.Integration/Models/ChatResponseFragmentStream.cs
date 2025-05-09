@@ -18,20 +18,20 @@ namespace DClare.Runtime.Integration.Models;
 /// </summary>
 [Description("Represents the result of invoking a chat with a user message, including a unique response identifier and a stream of output messages.")]
 [DataContract]
-public record ChatResponseStream
+public record ChatResponseFragmentStream
 {
 
     /// <summary>
-    /// Initializes a new <see cref="ChatResponseStream"/>.
+    /// Initializes a new <see cref="ChatResponseFragmentStream"/>.
     /// </summary>
-    public ChatResponseStream() { }
+    public ChatResponseFragmentStream() { }
 
     /// <summary>
-    /// Initializes a new <see cref="ChatResponseStream"/>.
+    /// Initializes a new <see cref="ChatResponseFragmentStream"/>.
     /// </summary>
     /// <param name="id">The response's unique identifier.</param>
     /// <param name="stream">The stream of chat messages produced by the chat.</param>
-    public ChatResponseStream(string id, IAsyncEnumerable<StreamingChatMessageContent> stream)
+    public ChatResponseFragmentStream(string id, IAsyncEnumerable<MessageFragment> stream)
     {
         Id = id;
         Stream = stream;
@@ -49,6 +49,6 @@ public record ChatResponseStream
     /// </summary>
     [Description("A stream of chat messages produced by the chat")]
     [DataMember(Name = "stream", Order = 2), JsonPropertyName("stream"), JsonPropertyOrder(2), YamlMember(Alias = "stream", Order = 2)]
-    public virtual IAsyncEnumerable<StreamingChatMessageContent> Stream { get; set; } = default!;
+    public virtual IAsyncEnumerable<MessageFragment> Stream { get; set; } = default!;
 
 }

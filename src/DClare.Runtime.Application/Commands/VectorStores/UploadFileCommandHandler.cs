@@ -29,7 +29,8 @@ public sealed class UploadFileCommandHandler(IContentEmbedder contentEmbedder)
         await contentEmbedder.EmbedAsync(command.Parameters.File, new()
         {
             VectorStore = command.VectorStore,
-            Embedding = command.Parameters.Embedding
+            Embedding = command.Parameters.Embedding,
+            Llm = command.Parameters.Llm
         }, cancellationToken).ConfigureAwait(false);
         return this.Ok();
     }

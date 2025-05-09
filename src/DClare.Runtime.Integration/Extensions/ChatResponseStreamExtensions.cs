@@ -16,19 +16,19 @@
 namespace DClare.Runtime;
 
 /// <summary>
-/// Defines extensions for <see cref="ChatResponseStream"/>s
+/// Defines extensions for <see cref="ChatResponseFragmentStream"/>s
 /// </summary>
 public static class ChatResponseStreamExtensions
 {
 
     /// <summary>
-    /// Converts the <see cref="ChatResponseStream"/> into a new <see cref="ChatResponse"/>
+    /// Converts the <see cref="ChatResponseFragmentStream"/> into a new <see cref="ChatResponse"/>
     /// </summary>
-    /// <param name="response">The <see cref="ChatResponseStream"/> to convert</param>
+    /// <param name="response">The <see cref="ChatResponseFragmentStream"/> to convert</param>
     /// <param name="includeMetadata">A boolean indicating whether or not to include metadata</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>A new <see cref="ChatResponse"/></returns>
-    public static async Task<ChatResponse> ToResponseAsync(this ChatResponseStream response, bool includeMetadata, CancellationToken cancellationToken = default)
+    public static async Task<ChatResponse> ToResponseAsync(this ChatResponseFragmentStream response, bool includeMetadata, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(response);
         return new(response.Id, await response.Stream.AsMessageStreamAsync(includeMetadata, cancellationToken).ToListAsync(cancellationToken).ConfigureAwait(false));

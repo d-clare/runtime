@@ -39,4 +39,11 @@ public record UploadFileCommandParameters
     [DataMember(Name = "embedding", Order = 2), JsonPropertyName("embedding"), JsonPropertyOrder(2), YamlMember(Alias = "embedding", Order = 2)]
     public virtual required NamespacedResourceReference Embedding { get; set; }
 
+    /// <summary>
+    /// Gets/sets a reference to the Large Language Model (LLM), if any, to use for converting images to text.
+    /// </summary>
+    [Description("A reference to the Large Language Model (LLM), if any, to use for converting images to text..")]
+    [DataMember(Name = "llm", Order = 3), JsonPropertyName("llm"), JsonPropertyOrder(3), YamlMember(Alias = "llm", Order = 3)]
+    public virtual NamespacedResourceReference? Llm { get; set; }
+
 }

@@ -11,25 +11,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.SemanticKernel.ChatCompletion;
+
 namespace DClare.Runtime.Application;
 
 /// <summary>
-/// Defines extensions for <see cref="Message"/>s.
+/// Defines extensions for <see cref="ChatSession"/>s
 /// </summary>
-public static class MessageExtensions
+public static class ChatSessionExtensions
 {
 
     /// <summary>
-    /// Converts the <see cref="Message"/> into a new <see cref="ChatMessageContent"/>.
+    /// Converts the <see cref="ChatSession"/> into a new <see cref="ChatHistory"/>.
     /// </summary>
-    /// <param name="message">The <see cref="Message"/> to convert.</param>
-    /// <returns>A new <see cref="ChatMessageContent"/>.</returns>
-    public static ChatMessageContent ToChatMessageContent(this Message message) => new()
+    /// <param name="chat">The <see cref="ChatHistory"/> to convert.</param>
+    /// <returns>A new <see cref="ChatHistory"/>.</returns>
+    public static ChatHistory ToChatHistory(this ChatSession chat)
     {
-        Role = new (message.Role),
-        AuthorName = message.Author,
-        Items = [.. message.Parts.Select(p => p.ToKernelContent())],
-        Metadata = message.Metadata
-    };
+        var chatHistory = new ChatHistory();
+        foreach (var message in chat.Messages) chatHistory.AddMessage(new AuthorRole(message.Role), message.Parts.ToChatMessageContentItemCollection(), message.Encoding, message.Metadata);
+        return chatHistory;
+    }
 
 }

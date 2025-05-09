@@ -21,6 +21,7 @@ global using Neuroglia.Mediation;
 global using Neuroglia.Serialization.Yaml;
 global using System.ComponentModel;
 global using System.ComponentModel.DataAnnotations;
+global using System.Net.Mime;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.Serialization;
 global using System.Text;

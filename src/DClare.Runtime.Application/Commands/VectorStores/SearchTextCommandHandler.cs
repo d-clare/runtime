@@ -12,7 +12,6 @@
 // limitations under the License.
 
 using DClare.Runtime.Integration.Commands.VectorStores;
-using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Embeddings;
 
 namespace DClare.Runtime.Application.Commands.VectorStores;
@@ -42,23 +41,11 @@ public sealed class SearchTextCommandHandler(IComponentDefinitionResolver compon
         var kernel = await kernelFactory.CreateAsync(kernelDefinition, null, cancellationToken).ConfigureAwait(false);
         var embedder = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
         var vector = await embedder.GenerateEmbeddingAsync(command.Parameters.Text, kernel, cancellationToken).ConfigureAwait(false);
-        IAsyncEnumerable<SemanticSearchResult> results;
-        if (vectorStoreDefinition.Provider.Name == VectorStoreProvider.Redis)
+        var vectorStore = kernel.GetRequiredService<IVectorStoreRecordCollection>();
+        var results = vectorStore.SearchEmbeddingAsync(vector, command.Parameters.Top, new()
         {
-            var vectorStore = kernel.GetRequiredService<IVectorStoreRecordCollection<string, TextEmbeddingRecord<string>>>();
-            results = vectorStore.SearchEmbeddingAsync(vector, command.Parameters.Top, new()
-            {
-                Skip = command.Parameters.Skip
-            }, cancellationToken).Select(r => r.Record.AsSearchResult());
-        }
-        else
-        {
-            var vectorStore = kernel.GetRequiredService<IVectorStoreRecordCollection<Guid, TextEmbeddingRecord<Guid>>>();
-            results = vectorStore.SearchEmbeddingAsync(vector, command.Parameters.Top, new()
-            {
-                Skip = command.Parameters.Skip
-            }, cancellationToken).Select(r => r.Record.AsSearchResult());
-        }
+            Skip = command.Parameters.Skip
+        }, cancellationToken).Select(r => r.Record);
         return this.Ok(results);
     }
 

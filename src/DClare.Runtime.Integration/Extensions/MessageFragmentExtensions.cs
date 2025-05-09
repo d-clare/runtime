@@ -14,19 +14,19 @@
 namespace DClare.Runtime;
 
 /// <summary>
-/// Defines extensions for <see cref="IAsyncEnumerable{T}"/> instances
+/// Defines extensions for <see cref="MessageFragment"/>s
 /// </summary>
-public static class IAsyncEnumerableExtensions
+public static class MessageFragmentExtensions
 {
 
     /// <summary>
-    /// Converts the specified stream of <see cref="StreamingChatMessageContent"/>s into a stream of <see cref="ChatMessage"/>s
+    /// Converts the specified stream of <see cref="MessageFragment"/>s into a stream of <see cref="Message"/>s
     /// </summary>
     /// <param name="stream">The stream to convert</param>
     /// <param name="includeMetadata">A boolean indicating whether or not to include metadata</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
-    /// <returns>A new stream of <see cref="ChatMessage"/>s</returns>
-    public static async IAsyncEnumerable<ChatMessage> AsMessageStreamAsync(this IAsyncEnumerable<StreamingChatMessageContent> stream, bool includeMetadata, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    /// <returns>A new stream of <see cref="Message"/>s</returns>
+    public static async IAsyncEnumerable<Message> AsMessageStreamAsync(this IAsyncEnumerable<MessageFragment> stream, bool includeMetadata, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string? currentRole = null;
         var currentContent = new StringBuilder();
@@ -36,7 +36,12 @@ public static class IAsyncEnumerableExtensions
             var role = part.Role?.ToString();
             if (role != null)
             {
-                if (currentContent.Length > 0 && currentRole != null) yield return new ChatMessage(currentRole, currentContent.ToString(), metadata?.AsReadOnly());
+                if (currentContent.Length > 0 && currentRole != null) yield return new Message()
+                {
+                    Role = currentRole,
+                    Content = currentContent.ToString(),
+                    Metadata = metadata?.AsReadOnly()
+                };
                 currentRole = role;
                 currentContent.Clear();
                 currentContent.Append(part.Content ?? string.Empty);
@@ -56,7 +61,12 @@ public static class IAsyncEnumerableExtensions
                 currentContent.Append(part.Content ?? string.Empty);
             }
         }
-        if (currentContent.Length > 0) yield return new ChatMessage(currentRole ?? "assistant", currentContent.ToString(), metadata?.AsReadOnly());
+        if (currentContent.Length > 0) yield return new Message()
+        {
+            Role = currentRole ?? "assistant",
+            Content = currentContent.ToString(),
+            Metadata = metadata?.AsReadOnly()
+        };
     }
 
 }
