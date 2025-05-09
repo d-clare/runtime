@@ -12,6 +12,7 @@
 // limitations under the License.
 
 using Microsoft.SemanticKernel.Agents;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DClare.Runtime.Application;
 
@@ -43,7 +44,10 @@ public static class StreamingKernelContentExtensions
             Encoding = text.Encoding,
             Metadata = text.Metadata
         },
-        _ => throw new NotSupportedException($"The specified kernel content type '{content.GetType().Name}' is not supported")
+        _ => new TextFragmentPart
+        {
+            Text = string.Empty
+        },
     };
 
 }

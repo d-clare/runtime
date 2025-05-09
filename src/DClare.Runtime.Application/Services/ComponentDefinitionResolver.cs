@@ -63,6 +63,11 @@ public class ComponentDefinitionResolver(IResourceRepository resources)
             var resource = await Resources.GetAsync<EmbeddingModel>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));
             return (resource.Spec.Definition as TComponent)!;
         }
+        else if (componentType == typeof(LlmDefinition))
+        {
+            var resource = await Resources.GetAsync<Llm>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));
+            return (resource.Spec.Definition as TComponent)!;
+        }
         else if (componentType == typeof(VectorStoreDefinition))
         {
             var resource = await Resources.GetAsync<VectorStore>(name, @namespace, cancellationToken).ConfigureAwait(false) ?? throw new ProblemDetailsException(Problems.ComponentNotFound<TComponent>(reference));

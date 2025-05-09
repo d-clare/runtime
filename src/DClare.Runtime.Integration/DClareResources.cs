@@ -36,6 +36,11 @@ public static class DClareResources
         public static ResourceDefinition EmbeddingModel { get; } = new EmbeddingModelResourceDefinition();
 
         /// <summary>
+        /// Gets the definition of LLM resources
+        /// </summary>
+        public static ResourceDefinition Llm { get; } = new LlmResourceDefinition();
+
+        /// <summary>
         /// Gets the definition of Agent resources
         /// </summary>
         public static ResourceDefinition VectorStore { get; } = new VectorStoreResourceDefinition();
@@ -58,6 +63,7 @@ public static class DClareResources
         {
             yield return Agent;
             yield return EmbeddingModel;
+            yield return Llm;
             yield return VectorStore;
             yield return Workflow;
             yield return WorkflowInstance;
