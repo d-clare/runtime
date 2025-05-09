@@ -14,9 +14,10 @@
 namespace DClare.Runtime.Integration.Models;
 
 /// <summary>
-/// Represents the options used to configure an agent's invocation
+/// Represents the options used to configure an agent's invocation.
 /// </summary>
-[DataContract, Description("The options used to configure an agent's invocation")]
+[Description("Represents the options used to configure an agent's invocation.")]
+[DataContract]
 public record AgentInvocationOptions
 {
 
@@ -41,7 +42,7 @@ public record AgentInvocationOptions
     /// </summary>
     [Description("The user identifier. Ignored if the caller is authenticated, in which case it is derived from the current user's subject. Required if the caller is anonymous.")]
     [DataMember(Name = "userId", Order = 3), JsonPropertyName("userId"), JsonPropertyOrder(3), YamlMember(Alias = "userId", Order = 3)]
-    public virtual string UserId { get; set; } = null!;
+    public virtual string? UserId { get; set; }
 
     /// <summary>
     /// Gets/sets a key/value mapping of parameters that influence the agent's behavior or response.

@@ -4,7 +4,7 @@
 	<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <VersionPrefix>0.6.0</VersionPrefix>
+    <VersionPrefix>0.7.0</VersionPrefix>
     <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
@@ -25,6 +25,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Models\Workflow.yaml" />
+    <None Remove="Models\WorkflowInstance.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Definitions\AgentResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\LlmResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\EmbeddingModelResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\VectorStoreResourceDefinition.yaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Definitions\WorkflowResourceDefinition.yaml" />
+    <EmbeddedResource Include="Resources\Definitions\WorkflowInstanceResourceDefinition.yaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\README.md">
     <Pack>True</Pack>
     <PackagePath>\</PackagePath>
@@ -32,7 +50,10 @@
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="DClare.Sdk" Version="0.2.1" />
+	<PackageReference Include="DClare.Sdk" Version="0.4.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.3.0" />
+	<PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" Version="9.0.0-preview.1.25229.1" />
+	<PackageReference Include="Neuroglia.Data.Infrastructure.ResourceOriented" Version="4.21.0" />
 	<PackageReference Include="Neuroglia.Data.PatchModel" Version="4.21.0" />
 	<PackageReference Include="Neuroglia.Mediation" Version="4.21.0" />
 	<PackageReference Include="System.Linq.Async" Version="6.0.1" />

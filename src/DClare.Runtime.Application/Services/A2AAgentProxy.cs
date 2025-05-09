@@ -20,12 +20,12 @@ using A2A.Requests;
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Represents a remote <see cref="IAgent"/> implementation that is invoked through an external communication channel
+/// Represents a remote <see cref="IAgent"/> implementation that is invoked through an external communication channel.
 /// </summary>
-/// <param name="name">The agent's name</param>
-/// <param name="definition">The agent's definition</param>
-/// <param name="manifest">The agent's manifest</param>
-/// <param name="client">The service used to interact with the remote agent using the A2A protocol</param>
+/// <param name="name">The agent's name.</param>
+/// <param name="definition">The agent's definition.</param>
+/// <param name="manifest">The agent's manifest.</param>
+/// <param name="client">The service used to interact with the remote agent using the A2A protocol.</param>
 public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentCard manifest, IA2AProtocolClient client)
     : IAgent
 {
@@ -37,52 +37,50 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
     public string? Description => Manifest.Description;
 
     /// <inheritdoc/>
-    public IReadOnlyCollection<AgentSkillDefinition> Skills { get; } = [.. manifest.Skills.Select(s => new AgentSkillDefinition() 
-    { 
-        Name = s.Name,
-        Description = s.Description,
-    })];
+    public IReadOnlyDictionary<string, AgentSkillDefinition> Skills { get; } = manifest.Skills.ToDictionary(s => s.Name, s => new AgentSkillDefinition()
+    {
+        Description = s.Description
+    });
 
     /// <summary>
-    /// Gets the agent's manifest
+    /// Gets the agent's manifest.
     /// </summary>
     protected AgentCard Manifest { get; } = manifest;
 
     /// <summary>
-    /// Gets the agent's definition
+    /// Gets the agent's definition.
     /// </summary>
     protected RemoteAgentDefinition Definition { get; } = definition;
 
     /// <summary>
-    /// Gets the service used to interact with the remote agent using the A2A protocol
+    /// Gets the service used to interact with the remote agent using the A2A protocol.
     /// </summary>
     protected IA2AProtocolClient Client { get; } = client;
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponse> InvokeAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponse> InvokeAsync(Integration.Models.Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
         var stream = await InvokeStreamingAsync(message, options, cancellationToken).ConfigureAwait(false);
         return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ChatResponseStream> InvokeStreamingAsync(string message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    public virtual async Task<ChatResponseFragmentStream> InvokeStreamingAsync(Integration.Models.Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        ArgumentNullException.ThrowIfNull(message);
         var requestParameters = new TaskSendParameters()
         {
             SessionId = options?.SessionId,
             Message = new()
             {
                 Role = MessageRole.User,
-                Parts =
-                [
-                    new TextPart(message)
-                ]
+                Parts = [.. message.Parts.Select(p => p.ToA2APart())],
+                Metadata = message.Metadata == null ? null : new(message.Metadata!)
             }
         };
         var responseId = Guid.NewGuid().ToString("N");
-        IAsyncEnumerable<Integration.Models.StreamingChatMessageContent> stream;
+        IAsyncEnumerable<MessageFragment> stream;
         if (Manifest.Capabilities.Streaming)
         {
             var request = new SendTaskStreamingRequest()
@@ -94,8 +92,8 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
                 .TakeWhile(e => e.Result is not TaskStatusUpdateEvent status || !status.Final)
                 .SelectMany(e =>
                 {
-                    if (e.Result is TaskArtifactUpdateEvent artifactUpdate) return artifactUpdate.Artifact.ToStreamingChatMessageContents().ToAsyncEnumerable();
-                    else return Enumerable.Empty<Integration.Models.StreamingChatMessageContent>().ToAsyncEnumerable();
+                    if (e.Result is TaskArtifactUpdateEvent artifactUpdate) return new MessageFragment[] { artifactUpdate.Artifact.ToMessageFragment() }.ToAsyncEnumerable();
+                    else return Enumerable.Empty<MessageFragment>().ToAsyncEnumerable();
                 });
         }
         else
@@ -108,7 +106,7 @@ public class A2AAgentProxy(string name, RemoteAgentDefinition definition, AgentC
             var response = await Client.SendTaskAsync(request, cancellationToken).ConfigureAwait(false);
             if (response.Error != null) throw new ProblemDetailsException(Problems.AgentCommunicationError(Name, $"[{response.Error.Code}] {response.Error.Message}"));
             if (response.Result == null) throw new ProblemDetailsException(Problems.AgentCommunicationError(Name, $"No result was returned by the remote agent"));
-            var contents = response.Result.Artifacts?.SelectMany(a => a.ToStreamingChatMessageContents()) ?? [];
+            var contents = response.Result.Artifacts?.Select(a => a.ToMessageFragment()) ?? [];
             stream = contents.ToAsyncEnumerable();
         }
         return new(responseId, stream);

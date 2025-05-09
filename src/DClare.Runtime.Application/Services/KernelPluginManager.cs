@@ -52,7 +52,7 @@ public class KernelPluginManager(ILoggerFactory loggerFactory)
     /// </summary>
     /// <param name="name">The plugin's name</param>
     /// <param name="definition">The plugin's definition</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>The loaded <see cref="KernelPlugin"/></returns>
     protected virtual async Task<KernelPlugin> LoadMcpPluginAsync(string name, ToolsetDefinition definition, CancellationToken cancellationToken)
     {
@@ -60,10 +60,10 @@ public class KernelPluginManager(ILoggerFactory loggerFactory)
         if (definition.Mcp == null) throw new NullReferenceException($"The '{nameof(definition.Mcp)}' property must be configured for a toolset of type '{ToolsetType.Mcp}'");
         return definition.Mcp.Transport.Type switch
         {
-            McpTransportType.Http => await Plugins.AddMcpFunctionsFromSseServerAsync(definition.Mcp.Client.Implementation.Name, definition.Mcp.Transport.Http!.Endpoint.Uri, LoggerFactory, cancellationToken).ConfigureAwait(false),
-            McpTransportType.Stdio => await Plugins.AddMcpFunctionsFromStdioServerAsync(definition.Mcp.Client.Implementation.Name, definition.Mcp.Transport.Stdio!.Command, definition.Mcp.Transport.Stdio.Arguments, null, LoggerFactory, cancellationToken).ConfigureAwait(false),
+            McpTransportType.Http => await Plugins.AddMcpFunctionsFromSseServerAsync(name, definition.Mcp.Transport.Http!.Endpoint.T1Value?.Uri ?? definition.Mcp.Transport.Http!.Endpoint.T2Value!, LoggerFactory, cancellationToken).ConfigureAwait(false),
+            McpTransportType.Stdio => await Plugins.AddMcpFunctionsFromStdioServerAsync(name, definition.Mcp.Transport.Stdio!.Command, definition.Mcp.Transport.Stdio.Arguments, null, LoggerFactory, cancellationToken).ConfigureAwait(false),
             _ => throw new NotSupportedException($"The specified MCP transport type '{definition.Mcp.Transport.Type}' is not supported")
-        };;
+        }; ;
     }
 
     /// <summary>
@@ -71,13 +71,13 @@ public class KernelPluginManager(ILoggerFactory loggerFactory)
     /// </summary>
     /// <param name="name">The plugin's name</param>
     /// <param name="definition">The plugin's definition</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>The loaded <see cref="KernelPlugin"/></returns>
     protected virtual async Task<KernelPlugin> LoadOpenApiPluginAsync(string name, ToolsetDefinition definition, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (definition.OpenApi == null) throw new NullReferenceException($"The '{nameof(definition.OpenApi)}' property must be configured for a toolset of type '{ToolsetType.OpenApi}'");
-        var plugin = (await OpenApiKernelPluginFactory.CreateFromOpenApiAsync(name, definition.OpenApi.Document.Endpoint.Uri, cancellationToken: cancellationToken).ConfigureAwait(false))!;
+        var plugin = (await OpenApiKernelPluginFactory.CreateFromOpenApiAsync(name, definition.OpenApi.Document.Endpoint.T1Value?.Uri ?? definition.OpenApi.Document.Endpoint.T2Value!, cancellationToken: cancellationToken).ConfigureAwait(false))!;
         Plugins.Add(plugin);
         return plugin;
     }

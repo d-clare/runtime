@@ -14,18 +14,18 @@
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Defines the fundamentals of a service used to create <see cref="Kernel"/>s
+/// Defines the fundamentals of a service used to create <see cref="Kernel"/>s.
 /// </summary>
 public interface IKernelFactory
 {
 
     /// <summary>
-    /// Creates a new <see cref="Kernel"/>
+    /// Creates a new <see cref="Kernel"/>.
     /// </summary>
-    /// <param name="definition">The definition of the <see cref="Kernel"/> to create</param>
-    /// <param name="components">A collection, if any, containing the reusable components potentially referenced by the <see cref="Kernel"/> to create</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>A new <see cref="Kernel"/></returns>
-    Task<Kernel> CreateAsync(KernelDefinition definition, ComponentCollectionDefinition? components = null, CancellationToken cancellationToken = default);
+    /// <param name="definition">The <see cref="KernelDefinition"/> used to configure the <see cref="Kernel"/> to create.</param>
+    /// <param name="context">The current <see cref="ComponentResolutionContext"/>, if any.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    /// <returns>A new <see cref="Kernel"/>.</returns>
+    Task<Kernel> CreateAsync(KernelDefinition definition, ComponentResolutionContext? context = null, CancellationToken cancellationToken = default);
 
 }

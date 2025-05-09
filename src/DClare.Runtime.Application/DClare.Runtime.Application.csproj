@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<VersionPrefix>0.6.0</VersionPrefix>
+	<VersionPrefix>0.7.0</VersionPrefix>
     <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
@@ -19,31 +19,36 @@
   </PropertyGroup>
 	
   <ItemGroup>
-	<PackageReference Include="a2a-net.Client" Version="0.4.1" />
-	<PackageReference Include="a2a-net.Client.Http" Version="0.4.1" />
-	<PackageReference Include="a2a-net.Server" Version="0.4.1" />
-	<PackageReference Include="a2a-net.Server.Infrastructure.DistributedCache" Version="0.4.1" />
-	<PackageReference Include="Duende.IdentityModel" Version="7.0.0" />
+	<PackageReference Include="a2a-net.Client" Version="0.5.0" />
+	<PackageReference Include="a2a-net.Client.Http" Version="0.5.0" />
+	<PackageReference Include="a2a-net.Server" Version="0.5.0" />
+	<PackageReference Include="a2a-net.Server.Infrastructure.DistributedCache" Version="0.5.0" />
+	<PackageReference Include="Duende.IdentityModel" Version="7.1.0-preview.1" />
 	<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
 	<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.4" />
 	<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
 	<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.9.0" />
 	<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.9.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.46.0" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.46.0" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.46.0-alpha" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.HuggingFace" Version="1.46.0-preview" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.MistralAI" Version="1.46.0-alpha" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.46.0-alpha" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Onnx" Version="1.46.0-alpha" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.46.0-preview" />
-	<PackageReference Include="Microsoft.SemanticKernel.Plugins.OpenApi.Extensions" Version="1.46.0-alpha" />
-	<PackageReference Include="ModelContextProtocol-SemanticKernel" Version="0.0.1-preview-09" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.48.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.48.0-alpha" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.HuggingFace" Version="1.48.0-preview" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.MistralAI" Version="1.48.0-alpha" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.48.0-alpha" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Onnx" Version="1.48.0-alpha" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Pinecone" Version="1.48.0-preview" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.48.0-preview" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Redis" Version="1.48.0-preview" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.Weaviate" Version="1.48.0-preview" />
+	<PackageReference Include="Microsoft.SemanticKernel.Plugins.OpenApi.Extensions" Version="1.48.0-alpha" />
+	<PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Handlebars" Version="1.48.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Liquid" Version="1.48.0" />
+	<PackageReference Include="ModelContextProtocol-SemanticKernel" Version="0.0.1-preview-12" />
+	<PackageReference Include="PdfPig" Version="0.1.10" />
 	<PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DClare.Runtime.Integration\DClare.Runtime.Integration.csproj" />
+    <ProjectReference Include="..\DClare.Runtime.Infrastructure.Abstractions\DClare.Runtime.Infrastructure.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

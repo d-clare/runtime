@@ -1,0 +1,155 @@
+﻿// Copyright © 2025-Present The DClare Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License"),
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using Microsoft.SemanticKernel.ChatCompletion;
+
+namespace DClare.Runtime.Application.Services;
+
+/// <summary>
+/// Represents a fully defined, locally hosted <see cref="IAgent"/> implementation with in-process execution
+/// </summary>
+/// <param name="name">The agent's name</param>
+/// <param name="definition">The agent's definition</param>
+/// <param name="kernel">The agent's kernel</param>
+/// <param name="componentResolutionContext">The current <see cref="Runtime.ComponentResolutionContext"/>.</param>
+/// <param name="chatSessionStore">The service used to manage <see cref="ChatSession"/>s</param>
+/// <param name="promptTemplateRenderer">The service used to render <see cref="PromptTemplateDefinition"/>s.</param>
+/// <param name="jsonSerializer">The service used to serialize/deserialize data to/from JSON</param>
+public class HostedAgent(string name, HostedAgentDefinition definition, Kernel kernel, ComponentResolutionContext componentResolutionContext, IChatSessionStore chatSessionStore, IPromptTemplateRenderer promptTemplateRenderer, IJsonSerializer jsonSerializer)
+    : IAgent
+{
+
+    /// <inheritdoc/>
+    public string Name { get; } = name;
+
+    /// <inheritdoc/>
+    public string? Description => Definition.Description;
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<string, AgentSkillDefinition> Skills { get; } = definition.Skills?.AsReadOnly() ?? new Dictionary<string, AgentSkillDefinition>().AsReadOnly();
+
+    /// <summary>
+    /// Gets the agent's definition
+    /// </summary>
+    protected HostedAgentDefinition Definition { get; } = definition;
+
+    /// <summary>
+    /// Gets the agent's kernel
+    /// </summary>
+    protected Kernel Kernel { get; } = kernel;
+
+    /// <summary>
+    /// Gets the current <see cref="Runtime.ComponentResolutionContext"/>.
+    /// </summary>
+    protected ComponentResolutionContext ComponentResolutionContext { get; } = componentResolutionContext;
+
+    /// <summary>
+    /// Gets the service used for chat completion, if any
+    /// </summary>
+    protected IChatCompletionService? ChatCompletionService { get; } = kernel.GetAllServices<IChatCompletionService>().LastOrDefault();
+
+    /// <summary>
+    /// Gets the service used to manage <see cref="ChatSession"/>s
+    /// </summary>
+    protected IChatSessionStore ChatSessionManager { get; } = chatSessionStore;
+
+    /// <summary>
+    /// Gets the service used to render <see cref="PromptTemplateDefinition"/>s.
+    /// </summary>
+    protected IPromptTemplateRenderer PromptTemplateRenderer { get; } = promptTemplateRenderer;
+
+    /// <summary>
+    /// Gets the service used to serialize/deserialize data to/from JSON
+    /// </summary>
+    protected IJsonSerializer JsonSerializer { get; } = jsonSerializer;
+
+    /// <inheritdoc/>
+    public virtual async Task<ChatResponse> InvokeAsync(Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        var stream = await InvokeStreamingAsync(message, options, cancellationToken).ConfigureAwait(false);
+        return await stream.ToResponseAsync(true, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<ChatResponseFragmentStream> InvokeStreamingAsync(Message message, AgentInvocationOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
+        var chat = string.IsNullOrWhiteSpace(options?.ChatId) ? null : await ChatSessionManager.GetAsync(options.ChatId, options.UserId!, Name, cancellationToken).ConfigureAwait(false);
+        var responseId = Guid.NewGuid().ToString("N");
+        var stream = StreamResponseAsync(message, chat, options, cancellationToken);
+        return new ChatResponseFragmentStream(responseId, stream);
+    }
+
+    /// <summary>
+    /// Streams the response of the agent by sending the user's message and existing chat history to the configured chat completion service.
+    /// </summary>
+    /// <param name="message">The user's input message to send to the agent.</param>
+    /// <param name="chat">The current chat, if any.</param>
+    /// <param name="options">The options used to configure the agent's invocation.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>An asynchronous stream of <see cref="MessageFragment"/> values representing the streamed response.</returns>
+    protected virtual async IAsyncEnumerable<MessageFragment> StreamResponseAsync(Message message, ChatSession? chat, AgentInvocationOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (ChatCompletionService == null) throw new NotSupportedException($"The agent '{Name}' does not define reasoning capability");
+        var chatHistory = chat?.ToChatHistory();
+        var instructions = Definition.Instructions.T1Value == null 
+            ? Definition.Instructions.T2Value 
+            : await PromptTemplateRenderer.RenderAsync(Definition.Instructions.T1Value, Kernel, new Dictionary<string, object>() 
+            { 
+                { "prompt", message }, 
+                { "chatHistory", chat! } 
+            }, ComponentResolutionContext, cancellationToken).ConfigureAwait(false);
+        chatHistory ??= string.IsNullOrWhiteSpace(instructions) ? new() : new(instructions);
+        chatHistory.Add(message.ToChatMessageContent());
+        var answerBuilder = new StringBuilder();
+        var promptSettings = Kernel.Services.GetRequiredService<PromptExecutionSettings>();
+        if (options?.Parameters != null)
+        {
+            promptSettings.ExtensionData ??= new Dictionary<string, object>();
+            foreach (var parameter in options.Parameters) promptSettings.ExtensionData[parameter.Key] = parameter.Value;
+        }
+        await foreach (var fragment in ChatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, promptSettings, Kernel, cancellationToken).ConfigureAwait(false))
+        {
+            answerBuilder.Append(fragment.Content);
+            var x = new MessageFragment
+            {
+                Role = fragment.Role?.Label,
+                Parts = [.. fragment.Items.Select(p => p.ToMessageFragmentPart())],
+                Metadata = fragment.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+            };
+            yield return new MessageFragment
+            {
+                Role = fragment.Role?.Label,
+                Parts = [.. fragment.Items.Select(p => p.ToMessageFragmentPart())],
+                Metadata = fragment.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+            };
+        }
+        var answer = answerBuilder.ToString();
+        chatHistory.AddAssistantMessage(answer);
+        if (!string.IsNullOrWhiteSpace(options?.ChatId))
+        {
+            var messages = chatHistory.Select(m => new Message()
+            {
+                Role = m.Role == AuthorRole.Tool ? AuthorRole.Assistant.Label : m.Role.Label,
+                Parts = [.. m.Items.Select(c => c.ToMessagePart())],
+                Metadata = m.Metadata
+            });
+            chat ??= new(options.ChatId, options.UserId!, Name, null, messages);
+            chat.Messages = messages;
+            await ChatSessionManager.AddOrUpdateAsync(chat, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+}

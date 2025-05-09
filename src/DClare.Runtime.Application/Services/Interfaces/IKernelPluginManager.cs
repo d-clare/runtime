@@ -14,18 +14,18 @@
 namespace DClare.Runtime.Application.Services;
 
 /// <summary>
-/// Defines the fundamentals of a service used to manage <see cref="KernelPlugin"/>s
+/// Defines the fundamentals of a service used to manage <see cref="KernelPlugin"/>s.
 /// </summary>
 public interface IKernelPluginManager
 {
 
     /// <summary>
-    /// Gets or loads the specified <see cref="KernelPlugin"/>
+    /// Gets or loads the specified <see cref="KernelPlugin"/>.
     /// </summary>
-    /// <param name="name">The name of the <see cref="KernelPlugin"/> to get or load</param>
-    /// <param name="definition">A <see cref="ToolsetDefinition"/> that defines the <see cref="KernelPlugin"/> to load</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>A new awaitable <see cref="KernelPlugin"/></returns>
+    /// <param name="name">The name of the <see cref="KernelPlugin"/> to get or load.</param>
+    /// <param name="definition">A <see cref="ToolsetDefinition"/> that defines the <see cref="KernelPlugin"/> to load.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    /// <returns>A new awaitable <see cref="KernelPlugin"/>.</returns>
     Task<KernelPlugin> GetOrLoadAsync(string name, ToolsetDefinition definition, CancellationToken cancellationToken = default);
 
 }
